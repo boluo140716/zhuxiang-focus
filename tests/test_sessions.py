@@ -57,6 +57,20 @@ def test_complete_twice_returns_400(client):
     assert client.patch(f"/api/sessions/{sid}", json={"action": "complete"}).status_code == 400
 
 
+def test_current_session(client):
+    assert client.get("/api/sessions/current").json() is None
+    sid = client.post("/api/sessions", json={"task_name": "进行中"}).json()["id"]
+    data = client.get("/api/sessions/current").json()
+    assert data["id"] == sid
+    assert data["status"] == "running"
+
+
+def test_actual_minutes_override(client):
+    sid = client.post("/api/sessions", json={}).json()["id"]
+    r = client.patch(f"/api/sessions/{sid}", json={"action": "complete", "actual_minutes": 7})
+    assert r.json()["actual_minutes"] == 7
+
+
 def test_abandon_session(client):
     sid = client.post("/api/sessions", json={"task_name": "放弃测试"}).json()["id"]
     r = client.patch(f"/api/sessions/{sid}", json={"action": "abandon"})

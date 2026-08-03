@@ -1,1 +1,175 @@
-<!doctype html><html><head><meta charset="utf-8"><title>FocusDojo</title></head><body><h1>FocusDojo</h1><p>建设中</p></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FocusDojo 专注训练营</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="theme-color" content="#12121e">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <nav id="nav">
+    <button class="nav-btn active" data-view="home">专注</button>
+    <button class="nav-btn" data-view="stats">统计</button>
+    <button class="nav-btn" data-view="settings">设置</button>
+  </nav>
+
+  <main>
+    <!-- 主页 -->
+    <section id="view-home">
+      <div id="home-idle">
+        <h2 id="today-title">今天</h2>
+        <div id="today-cards" class="cards">
+          <div class="card"><div class="num" id="today-focus">0</div><div class="label">专注分钟</div></div>
+          <div class="card"><div class="num" id="today-sessions">0</div><div class="label">完成场次</div></div>
+          <div class="card"><div class="num" id="today-distractions">0</div><div class="label">分心次数</div></div>
+          <div class="card"><div class="num" id="streak-num">0</div><div class="label">连续达标天</div></div>
+        </div>
+        <div id="rebound-area" hidden>
+          <p class="hint">今天还没达标，来个 5 分钟回弹任务，不让连续断掉。</p>
+          <button class="btn btn-ghost" id="btn-rebound">开始回弹（5 分钟）</button>
+        </div>
+        <div id="startup-box" class="panel">
+          <h3>这次要完成什么？</h3>
+          <input id="task-input" type="text" placeholder="例如：写周报 / 读 20 页书" maxlength="100">
+          <div class="row">
+            <label>时长 <span id="minutes-label">15</span> 分钟</label>
+            <input id="minutes-slider" type="range" min="5" max="60" step="5" value="15">
+          </div>
+          <button class="btn btn-primary" id="btn-start">开始专注</button>
+        </div>
+      </div>
+
+      <div id="home-running" hidden>
+        <div class="panel running-panel">
+          <div class="task-name" id="running-task"></div>
+          <div class="timer" id="timer">00:00</div>
+          <div class="row">
+            <button class="btn btn-ghost" id="btn-distract">破功了</button>
+            <button class="btn btn-danger" id="btn-abandon">放弃</button>
+            <button class="btn btn-primary" id="btn-complete">完成</button>
+          </div>
+          <p class="hint" id="running-hint">放下手机，专注于当前任务。</p>
+          <p class="tiny" id="offline-badge" hidden>离线中：数据已暂存，联网后自动同步</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 统计 -->
+    <section id="view-stats" hidden>
+      <div id="week-chart" class="panel"></div>
+      <div class="cards">
+        <div class="card"><div class="num" id="week-rate">0%</div><div class="label">本周达标率</div></div>
+        <div class="card"><div class="num" id="week-streak">0</div><div class="label">连续达标天</div></div>
+        <div class="card"><div class="num" id="next-target">—</div><div class="label">下周建议分钟</div></div>
+      </div>
+      <div class="panel">
+        <h3>洞察</h3>
+        <p id="insight-text">数据不足，先用起来。</p>
+        <p class="tiny" id="insight-detail"></p>
+      </div>
+      <div class="row">
+        <button class="btn btn-ghost" id="btn-apply-target">应用建议时长</button>
+        <button class="btn btn-ghost" id="btn-refresh-stats">刷新</button>
+      </div>
+    </section>
+
+    <!-- 设置 -->
+    <section id="view-settings" hidden>
+      <div class="panel">
+        <h3>分心黑名单</h3>
+        <p class="hint">每行一个关键词，匹配电脑前台窗口的标题或进程名。默认：抖音</p>
+        <textarea id="blacklist-input" rows="6"></textarea>
+      </div>
+      <div class="panel">
+        <h3>目标时长</h3>
+        <div class="row">
+          <label>每次专注目标 <span id="target-label">15</span> 分钟</label>
+          <input id="target-slider" type="range" min="5" max="60" step="5" value="15">
+        </div>
+      </div>
+      <div class="panel">
+        <h3>深度时段</h3>
+        <div class="row">
+          <input id="deep-start" type="time" value="09:00">
+          <span>至</span>
+          <input id="deep-end" type="time" value="11:00">
+        </div>
+        <p class="hint">到点打开页面时会提醒你开始（MVP 不做系统推送）。</p>
+      </div>
+      <div class="panel">
+        <label class="check"><input id="reminder-enabled" type="checkbox"> 开启深度时段提醒</label>
+      </div>
+      <button class="btn btn-primary" id="btn-save-settings">保存设置</button>
+    </section>
+  </main>
+</div>
+
+<!-- 启动仪式 -->
+<div id="overlay-startup" class="overlay" hidden>
+  <div class="overlay-box">
+    <h3>先写下目标</h3>
+    <p class="hint">30 秒，想清楚这次要完成什么。</p>
+    <input id="startup-task" type="text" placeholder="这次要完成什么？" maxlength="100">
+    <div class="row">
+      <label>时长 <span id="startup-minutes">15</span> 分钟</label>
+      <input id="startup-slider" type="range" min="5" max="60" step="5" value="15">
+    </div>
+    <button class="btn btn-primary" id="btn-confirm-start">开始</button>
+    <button class="btn btn-ghost" id="btn-cancel-start">取消</button>
+  </div>
+</div>
+
+<!-- 质量自评 -->
+<div id="overlay-review" class="overlay" hidden>
+  <div class="overlay-box">
+    <h3>这场专注怎么样？</h3>
+    <div class="row">
+      <label>完成度 <span id="completion-label">50</span>%</label>
+      <input id="completion-slider" type="range" min="0" max="100" step="10" value="50">
+    </div>
+    <div class="row">
+      <label>心流状态</label>
+      <div id="flow-picker">
+        <button class="flow-btn" data-v="1">1</button><button class="flow-btn" data-v="2">2</button><button class="flow-btn" data-v="3">3</button><button class="flow-btn" data-v="4">4</button><button class="flow-btn" data-v="5">5</button>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="btn-submit-review">提交</button>
+  </div>
+</div>
+
+<!-- 手机归因 -->
+<div id="overlay-attribution" class="overlay" hidden>
+  <div class="overlay-box">
+    <h3>刚才离开 <span id="attr-duration">0</span> 分钟</h3>
+    <p class="hint">去哪了？（不选的话按"刷手机"记录）</p>
+    <div class="row">
+      <button class="btn" data-reason="刷手机">刷手机</button>
+      <button class="btn" data-reason="工作">工作</button>
+      <button class="btn" data-reason="喝水">喝水</button>
+      <button class="btn" data-reason="上厕所">上厕所</button>
+    </div>
+    <p class="tiny" id="attr-countdown"></p>
+  </div>
+</div>
+
+<!-- 电脑补问 -->
+<div id="overlay-idle" class="overlay" hidden>
+  <div class="overlay-box">
+    <h3>刚才一段时间没动静</h3>
+    <p class="hint">是在忙正事，还是走神了？</p>
+    <div class="row">
+      <button class="btn" data-idle="distracted">走神了</button>
+      <button class="btn" data-idle="working">忙正事</button>
+      <button class="btn" data-idle="rest">休息</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+<script src="app.js"></script>
+</body>
+</html>

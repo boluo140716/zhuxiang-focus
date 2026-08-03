@@ -15,6 +15,7 @@ class SessionUpdate(SQLModel):
     action: str = "complete"  # complete / abandon
     completion_score: Optional[int] = None
     flow_score: Optional[int] = None
+    actual_minutes: Optional[int] = None  # 客户端实测时长（离线补交用）
 
 
 class DistractionCreate(SQLModel):

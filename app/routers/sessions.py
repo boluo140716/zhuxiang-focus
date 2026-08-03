@@ -27,6 +27,12 @@ def start_session(body: SessionCreate, db: DBSession = Depends(get_session)):
     return session
 
 
+@router.get("/current")
+def current_session(db: DBSession = Depends(get_session)):
+    """返回进行中的会话（页面刷新后恢复计时用），没有则 null。"""
+    return db.exec(select(FocusSession).where(FocusSession.status == "running")).first()
+
+
 @router.patch("/{session_id}", response_model=FocusSession)
 def end_session(session_id: int, body: SessionUpdate, db: DBSession = Depends(get_session)):
     """结束会话：complete 或 abandon，附带质量自评。"""
@@ -36,7 +42,10 @@ def end_session(session_id: int, body: SessionUpdate, db: DBSession = Depends(ge
     if session.status != "running":
         raise HTTPException(400, "会话已结束")
     session.ended_at = datetime.now()
-    session.actual_minutes = max(0, int((session.ended_at - session.started_at).total_seconds() // 60))
+    if body.actual_minutes is not None:
+        session.actual_minutes = max(0, body.actual_minutes)
+    else:
+        session.actual_minutes = max(0, int((session.ended_at - session.started_at).total_seconds() // 60))
     session.status = "completed" if body.action == "complete" else "abandoned"
     session.completion_score = body.completion_score
     session.flow_score = body.flow_score

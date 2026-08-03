@@ -35,6 +35,8 @@ def weekly_stats(date_str: str | None = None, db: DBSession = Depends(get_sessio
     sessions, distractions = _load_data(db)
     data = insights_service.weekly(sessions, distractions, today)
     target = get_settings(db)["target_minutes"]
+    for day_item in data["days"]:
+        day_item["qualified"] = training_service.is_qualified_day(sessions, target, date.fromisoformat(day_item["date"]))
     qualified = training_service.qualified_days(sessions, target)
     data["completion_rate"] = training_service.week_completion_rate(qualified, today)
     data["streak"] = training_service.compute_streak(qualified, today)
