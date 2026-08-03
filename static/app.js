@@ -405,7 +405,8 @@ function bindEvents() {
     if (b.dataset.idle === "distracted") recordDistraction("manual", "走神", "", 0);
     toast(b.dataset.idle === "distracted" ? "已记录" : "好，继续");
   }));
-  $("btn-idle-later").addEventListener("click", () => {
+  const idleLaterBtn = $("btn-idle-later");
+  if (idleLaterBtn) idleLaterBtn.addEventListener("click", () => {
     hideOverlay("idle");
     state.idleFlag = false;
     state.lastActivity = Date.now();
@@ -434,7 +435,7 @@ function bindEvents() {
 /* ---------- PWA ---------- */
 function registerSW() {
   if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
+    navigator.serviceWorker.register("sw.js").then((reg) => { try { reg.update(); } catch (e) {} }).catch(() => {});
   }
 }
 
@@ -452,12 +453,38 @@ async function init() {
   let local = null;
   try { local = JSON.parse(localStorage.getItem(LOCAL_SESSION) || "null"); } catch (e) {}
   state.session = server || local;
-  if (state.session) enterRunning();
-  else refreshHome();
+  if (state.session) {
+    if (isStaleSession(state.session)) autoAbandon(state.session);
+    else enterRunning();
+  } else {
+    refreshHome();
+  }
 
   setInterval(tick, 1000);
   setInterval(() => { if (navigator.onLine) flushQueue(); }, 20000);
   tick();
+}
+
+function isStaleSession(s) {
+  // 会话超过"计划时长×2 或 30 分钟"仍未结束，视为遗留会话
+  const elapsedMin = (Date.now() - sessionStartTime(s)) / 60000;
+  const planned = s.planned_minutes || 15;
+  return elapsedMin > Math.max(planned * 2, 30);
+}
+
+async function autoAbandon(s) {
+  state.session = null;
+  localStorage.removeItem(LOCAL_SESSION);
+  const actual = Math.max(1, Math.round((Date.now() - sessionStartTime(s)) / 60000));
+  const payload = { action: "abandon", completion_score: null, flow_score: null, actual_minutes: actual };
+  if (s.id) {
+    const queueItem = { type: "raw", path: `/api/sessions/${s.id}`, method: "PATCH", body: payload };
+    await apiWriteQueue(`/api/sessions/${s.id}`, "PATCH", payload, queueItem);
+  } else {
+    enqueue({ type: "end", clientKey: s.clientKey, ...payload });
+  }
+  toast("检测到一场遗留的旧会话，已自动结束");
+  refreshHome();
 }
 
 init();
