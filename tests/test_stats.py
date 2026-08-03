@@ -1,5 +1,5 @@
 """统计 API 测试。"""
-from datetime import datetime, timedelta
+from datetime import date, datetime, time, timedelta
 
 from sqlmodel import Session as DBSession
 
@@ -8,19 +8,21 @@ from app.models import Distraction, FocusSession
 
 
 def _seed_today():
-    """种一条今天完成的达标会话 + 一条分心。"""
+    """种一条今天完成的达标会话 + 一条分心（固定到今天，避免午夜边界）。"""
+    today10 = datetime.combine(date.today(), time(10, 0))
+    today20 = datetime.combine(date.today(), time(20, 0))
     with DBSession(engine) as db:
-        s = FocusSession(task_name="种子", planned_minutes=15, status="running", started_at=datetime.now() - timedelta(minutes=30))
+        s = FocusSession(task_name="种子", planned_minutes=15, status="running", started_at=today10)
         db.add(s)
         db.commit()
         db.refresh(s)
         s.status = "completed"
-        s.ended_at = datetime.now()
+        s.ended_at = today10 + timedelta(minutes=30)
         s.actual_minutes = 30
         s.completion_score = 70
         s.flow_score = 4
         db.add(s)
-        db.add(Distraction(source="auto_detect", app_name="抖音", duration_minutes=10, occurred_at=datetime.now().replace(hour=20, minute=0, second=0, microsecond=0)))
+        db.add(Distraction(source="auto_detect", app_name="抖音", duration_minutes=10, occurred_at=today20))
         db.commit()
 
 
