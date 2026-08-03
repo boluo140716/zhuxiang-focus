@@ -1,5 +1,5 @@
 /* FocusDojo Service Worker：静态资源离线缓存 */
-const CACHE = "focusdojo-v1";
+const CACHE = "focusdojo-v2";
 const ASSETS = [
   "/", "/index.html", "/app.js", "/style.css",
   "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png",

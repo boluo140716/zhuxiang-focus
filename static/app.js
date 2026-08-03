@@ -174,7 +174,7 @@ async function refreshHome() {
     $("today-sessions").textContent = daily.completed_sessions;
     $("today-distractions").textContent = daily.distractions;
     $("streak-num").textContent = weekly.streak;
-    const rebound = !daily.qualified && (daily.total_sessions > 0 || true);
+    const rebound = !daily.qualified;
     $("rebound-area").hidden = !rebound;
     deepTimeReminder();
   } catch (e) { /* 离线时忽略 */ }
@@ -405,6 +405,12 @@ function bindEvents() {
     if (b.dataset.idle === "distracted") recordDistraction("manual", "走神", "", 0);
     toast(b.dataset.idle === "distracted" ? "已记录" : "好，继续");
   }));
+  $("btn-idle-later").addEventListener("click", () => {
+    hideOverlay("idle");
+    state.idleFlag = false;
+    state.lastActivity = Date.now();
+    toast("好，等会儿再问");
+  });
 
   $("target-slider").addEventListener("input", (e) => { $("target-label").textContent = e.target.value; });
   $("btn-save-settings").addEventListener("click", saveSettings);
