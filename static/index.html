@@ -7,7 +7,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#12121e">
-<link rel="stylesheet" href="style.css">
+<!-- 缓存版本 v5：升级时需同步修改本文件两处 ?v=、sw.js 的 CACHE/ASSETS、README 的逃生地址 -->
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 <div id="app">
@@ -166,10 +167,11 @@
       <button class="btn" data-idle="working">忙正事</button>
       <button class="btn" data-idle="rest">休息</button>
     </div>
+    <button class="btn btn-ghost" id="btn-idle-later">稍后再问</button>
   </div>
 </div>
 
 <div id="toast" hidden></div>
-<script src="app.js"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>

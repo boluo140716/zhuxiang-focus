@@ -69,7 +69,10 @@ New-NetFirewallRule -DisplayName "FocusDojo 8000" -Direction Inbound -Action All
 - 后端：FastAPI + SQLModel + SQLite（`app/`）
 - 前端：单页原生 JS + PWA（`static/`）
 - 桌面监控：ctypes 调 Windows API 轮询前台窗口（`app/monitor/`）
-- 测试：`pytest`（30 个用例，覆盖 API、算法、黑名单、监控逻辑）
+- 测试：`python -m pytest -q`（30 个用例，覆盖 API、算法、黑名单、监控逻辑）
+- 前端冒烟：`node tests/frontend_smoke.cjs`（jsdom，28 项：首页/遗留会话自动结束/弹窗逃生/会话流程）
+- 浏览器端到端：`node tests/e2e_smoke.cjs`（无头 Chrome/Edge + 独立测试库，29 项：SW 缓存/视觉显隐/完整流程）
+- 前端测试依赖：项目根目录执行 `npm install`（jsdom）；E2E 需本机装有 Chrome 或 Edge，可用环境变量 `CHROME_PATH` 指定浏览器路径
 
 ## 后续路线（暂未实现）
 
@@ -78,6 +81,12 @@ New-NetFirewallRule -DisplayName "FocusDojo 8000" -Direction Inbound -Action All
 - 跨端搭档模式：电脑开始专注时手机进入搭档模式
 - 云端同步 + Web Push 推送
 - 恢复力仪式 / 裸专注日 / 月度体检 / 脚手架递减自动编排
+
+## 页面卡在旧版本？（缓存问题）
+
+- 症状：页面一直显示旧内容、弹窗不消失、刷新无效
+- 解决：**一次**打开 `http://127.0.0.1:8000/?v=5`（带版本号的地址会绕过旧缓存并自动更新），之后正常访问 `http://127.0.0.1:8000` 即可
+- 原理：早期版本 Service Worker 缓存优先，会把旧页面直接发给浏览器；当前版本为网络优先、新 Service Worker 接管时自动刷新，上述地址用于一次性绕过旧缓存完成更新
 
 ## 已知限制
 

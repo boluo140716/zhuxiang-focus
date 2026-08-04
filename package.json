@@ -1,6 +1,9 @@
-﻿{
+{
   "name": "focusdojo",
   "private": true,
   "version": "0.1.0",
-  "description": "FocusDojo 专注训练营 MVP"
+  "description": "FocusDojo 专注训练营 MVP",
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
 }

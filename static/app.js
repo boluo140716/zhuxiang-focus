@@ -174,7 +174,7 @@ async function refreshHome() {
     $("today-sessions").textContent = daily.completed_sessions;
     $("today-distractions").textContent = daily.distractions;
     $("streak-num").textContent = weekly.streak;
-    const rebound = !daily.qualified;
+    const rebound = !daily.qualified && daily.total_sessions > 0;
     $("rebound-area").hidden = !rebound;
     deepTimeReminder();
   } catch (e) { /* 离线时忽略 */ }
@@ -259,6 +259,7 @@ function submitAttribution(reason) {
 }
 
 function showIdleOverlay() {
+  if (!state.session) return;
   if ($("overlay-attribution").hidden) $("overlay-idle").hidden = false;
 }
 
@@ -400,16 +401,14 @@ function bindEvents() {
     b.addEventListener("click", () => submitAttribution(b.dataset.reason)));
   document.querySelectorAll("#overlay-idle .btn").forEach((b) => b.addEventListener("click", () => {
     hideOverlay("idle");
-    state.idleFlag = false;
-    state.lastActivity = Date.now();
+    resetIdle();
     if (b.dataset.idle === "distracted") recordDistraction("manual", "走神", "", 0);
     toast(b.dataset.idle === "distracted" ? "已记录" : "好，继续");
   }));
   const idleLaterBtn = $("btn-idle-later");
   if (idleLaterBtn) idleLaterBtn.addEventListener("click", () => {
     hideOverlay("idle");
-    state.idleFlag = false;
-    state.lastActivity = Date.now();
+    resetIdle();
     toast("好，等会儿再问");
   });
 
@@ -436,6 +435,10 @@ function bindEvents() {
 function registerSW() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").then((reg) => { try { reg.update(); } catch (e) {} }).catch(() => {});
+    navigator.serviceWorker.addEventListener("controllerchange", () => {
+      // 新 SW 接管时自动刷新一次，确保拿到最新代码
+      if (!window.__fd.reloaded) { window.__fd.reloaded = true; location.reload(); }
+    });
   }
 }
 
@@ -454,8 +457,12 @@ async function init() {
   try { local = JSON.parse(localStorage.getItem(LOCAL_SESSION) || "null"); } catch (e) {}
   state.session = server || local;
   if (state.session) {
-    if (isStaleSession(state.session)) autoAbandon(state.session);
-    else enterRunning();
+    if (isStaleSession(state.session)) {
+      resetIdle();
+      autoAbandon(state.session);
+    } else {
+      enterRunning();
+    }
   } else {
     refreshHome();
   }
@@ -466,7 +473,7 @@ async function init() {
 }
 
 function isStaleSession(s) {
-  // 会话超过"计划时长×2 或 30 分钟"仍未结束，视为遗留会话
+  // 会话超过"计划时长×2 或 30 分钟"仍未结束，视为遗留旧会话（统一阈值，避免误杀进行中的离线会话）
   const elapsedMin = (Date.now() - sessionStartTime(s)) / 60000;
   const planned = s.planned_minutes || 15;
   return elapsedMin > Math.max(planned * 2, 30);
@@ -486,5 +493,12 @@ async function autoAbandon(s) {
   toast("检测到一场遗留的旧会话，已自动结束");
   refreshHome();
 }
+
+function resetIdle() {
+  state.idleFlag = false;
+  state.lastActivity = Date.now();
+}
+
+window.__fd = { state, reloaded: false }; // 调试/测试钩子
 
 init();

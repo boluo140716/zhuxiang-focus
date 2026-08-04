@@ -1,7 +1,7 @@
 /* FocusDojo Service Worker：静态资源离线缓存 */
-const CACHE = "focusdojo-v4";
+const CACHE = "focusdojo-v5";
 const ASSETS = [
-  "/", "/index.html", "/app.js", "/style.css",
+  "/", "/index.html", "/app.js?v=5", "/style.css?v=5",
   "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png",
 ];
 
@@ -29,6 +29,10 @@ self.addEventListener("fetch", (e) => {
         caches.open(CACHE).then((cache) => cache.put(e.request, copy));
         return res;
       })
-      .catch(() => caches.match(e.request).then((hit) => hit || caches.match("/index.html")))
+      .catch(() => caches.match(e.request).then((hit) => {
+        if (hit) return hit;
+        if (e.request.mode === "navigate") return caches.match("/index.html");
+        return Response.error();
+      }))
   );
 });

@@ -1,4 +1,4 @@
-﻿data/
+data/
 __pycache__/
 *.pyc
 .venv/
@@ -7,3 +7,6 @@ node_modules/
 .chrome_tmp*/
 .pytest_cache/
 server*.log
+.e2e_artifacts/
+.e2e_test.db
+codex_chat/
