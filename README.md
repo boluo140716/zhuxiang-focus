@@ -1,6 +1,6 @@
-# FocusDojo 专注训练营
+# 一炷香 专注训练营
 
-不是约束工具，而是「觉察 → 训练 → 习惯」的专注力训练产品。目标是让你**毕业**——连续达标后，脱离产品也能专注。
+点一炷香，专注一炷香。不是约束工具，而是「觉察 → 训练 → 习惯」的专注力训练产品。目标是让你**毕业**——连续达标后，脱离产品也能专注。
 
 设计文档：`docs/superpowers/specs/2026-08-03-focus-training-design.md`
 实现计划：`docs/superpowers/plans/2026-08-03-focus-training-plan.md`
@@ -27,13 +27,13 @@ python run.py
 1. 手机和电脑连**同一个 WiFi**
 2. 查看电脑局域网 IP（`ipconfig` 里 WLAN 的 IPv4 地址，如 `192.168.1.2`）
 3. 手机浏览器打开 `http://<电脑IP>:8000`
-4. 浏览器菜单 →「安装应用 / 添加到主屏幕」→ 桌面出现 FocusDojo 图标
+4. 浏览器菜单 →「安装应用 / 添加到主屏幕」→ 桌面出现「一炷香」图标
 5. 如无法访问，需在 Windows 防火墙放行 8000 端口（见下方）
 
 ### Windows 防火墙放行（手机访问失败时）
 
 ```powershell
-New-NetFirewallRule -DisplayName "FocusDojo 8000" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8000
+New-NetFirewallRule -DisplayName "Yizhuxiang 8000" -Direction Inbound -Action Allow -Protocol TCP -LocalPort 8000
 ```
 
 ## 怎么用
@@ -85,7 +85,7 @@ New-NetFirewallRule -DisplayName "FocusDojo 8000" -Direction Inbound -Action All
 ## 页面卡在旧版本？（缓存问题）
 
 - 症状：页面一直显示旧内容、弹窗不消失、刷新无效
-- 解决：**一次**打开 `http://127.0.0.1:8000/?v=5`（带版本号的地址会绕过旧缓存并自动更新），之后正常访问 `http://127.0.0.1:8000` 即可
+- 解决：**一次**打开 `http://127.0.0.1:8000/?v=6`（带版本号的地址会绕过旧缓存并自动更新），之后正常访问 `http://127.0.0.1:8000` 即可
 - 原理：早期版本 Service Worker 缓存优先，会把旧页面直接发给浏览器；当前版本为网络优先、新 Service Worker 接管时自动刷新，上述地址用于一次性绕过旧缓存完成更新
 
 ## 已知限制

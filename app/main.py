@@ -7,7 +7,7 @@ from app.routers import distractions, sessions, settings, stats
 
 init_db()
 
-app = FastAPI(title="FocusDojo 专注训练营")
+app = FastAPI(title="一炷香 专注训练营")
 app.include_router(sessions.router)
 app.include_router(distractions.router)
 app.include_router(settings.router)

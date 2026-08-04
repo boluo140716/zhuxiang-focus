@@ -1,7 +1,7 @@
-/* FocusDojo Service Worker：静态资源离线缓存 */
-const CACHE = "focusdojo-v5";
+/* 一炷香 Service Worker：静态资源离线缓存 */
+const CACHE = "yizhuxiang-v6";
 const ASSETS = [
-  "/", "/index.html", "/app.js?v=5", "/style.css?v=5",
+  "/", "/index.html", "/app.js?v=6", "/style.css?v=6",
   "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png",
 ];
 

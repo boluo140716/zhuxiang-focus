@@ -1,4 +1,4 @@
-/* FocusDojo E2E：独立测试库 + 真实 Chrome(headless) + CDP 验证 */
+/* 一炷香 E2E：独立测试库 + 真实 Chrome(headless) + CDP 验证 */
 "use strict";
 const { spawn } = require("child_process");
 const fs = require("fs");
@@ -117,13 +117,13 @@ async function main() {
   check("visHidden", visHidden);
   await cdp.shot("01-home");
 
-  console.log("== E2 Service Worker 已注册（v5） ==");
+  console.log("== E2 Service Worker 已注册（v6） ==");
   const sw = await waitFor(`navigator.serviceWorker.getRegistrations().then(rs => rs.length > 0)`, 10000);
   check("SW 已注册", sw);
   const swUrl = await cdp.eval(`navigator.serviceWorker.getRegistrations().then(rs => rs[0].active ? rs[0].active.scriptURL : null)`, true);
   check("SW scriptURL", swUrl === BASE + "/sw.js", String(swUrl));
   const cacheName = await cdp.eval(`caches.keys().then(ks => ks.join(','))`, true);
-  check("缓存为 v5", /focusdojo-v5/.test(cacheName), cacheName);
+  check("缓存为 v6", /yizhuxiang-v6/.test(cacheName), cacheName);
 
   console.log("== E3 遗留旧会话（2小时前）→ 自动结束回首页 ==");
   await cdp.eval(`localStorage.setItem('fd_local_session', JSON.stringify({clientKey:'sk-old', task_name:'旧任务', planned_minutes:15, started_at: Date.now()-7200000})); location.reload();`);
@@ -171,27 +171,77 @@ async function main() {
   await cdp.shot("04-running");
   await cdp.eval(`document.getElementById('btn-complete').click()`);
   check("自评弹窗出现", await waitFor(`!document.getElementById('overlay-review').hidden`));
+  await cdp.shot("04-review");
   await cdp.eval(`document.getElementById('btn-submit-review').click()`);
   check("完成后回首页", await waitFor(`!document.getElementById('home-idle').hidden`));
   const visAfter = await cdp.eval(`(() => { const ids=['overlay-startup','overlay-review','overlay-attribution','overlay-idle']; const bad=ids.filter(id => getComputedStyle(document.getElementById(id)).display !== 'none'); return JSON.stringify({bad, toastDisplay: getComputedStyle(document.getElementById('toast')).display, toastHidden: document.getElementById('toast').hidden}); })()`);
   check("afterDone(无弹窗残留)", JSON.parse(visAfter).bad.length === 0, visAfter);
 
-  console.log("== E7 缓存穿透 URL（/ ?v=5）正常加载 ==");
-  await cdp.send("Page.navigate", { url: BASE + "/?v=5" });
-  check("v=5 加载正常", await waitFor(`!document.getElementById('home-idle').hidden`));
-  check("页面版本为 v5 资源", await cdp.eval(`document.querySelector('script[src*="app.js"]').src.includes('v=5')`));
+  console.log("== E7 缓存穿透 URL（/ ?v=6）正常加载 ==");
+  await cdp.send("Page.navigate", { url: BASE + "/?v=6" });
+  check("v=6 加载正常", await waitFor(`!document.getElementById('home-idle').hidden`));
+  check("页面版本为 v6 资源", await cdp.eval(`document.querySelector('script[src*="app.js"]').src.includes('v=6')`));
 
   console.log("== E8 启动弹窗视觉显隐 ==");
+  await waitFor(`window.__fd && typeof window.toggleTheme === 'function'`, 8000);
   await cdp.eval(`document.getElementById('btn-start').click()`);
   check("点开始后启动弹窗视觉可见", await waitFor(`getComputedStyle(document.getElementById('overlay-startup')).display !== 'none'`));
   await cdp.eval(`document.getElementById('btn-cancel-start').click()`);
   check("点取消后启动弹窗视觉隐藏", await waitFor(`getComputedStyle(document.getElementById('overlay-startup')).display === 'none'`));
 
+  console.log("== E9 昼夜主题切换 + 视觉截图 ==");
+  // 强制从夜模式开始（不依赖系统偏好）
+  await cdp.eval(`localStorage.setItem('yizhuxiang-theme', 'dark')`);
+  await cdp.send("Page.navigate", { url: BASE + "/" });
+  await waitFor(`window.__fd && typeof window.toggleTheme === 'function' && document.documentElement.dataset.theme === 'dark'`, 10000);
+  await sleep(500);
+  const darkInit = await cdp.eval(`getComputedStyle(document.body).backgroundColor`);
+  check("初始为夜模式（墨色背景）", darkInit === "rgb(20, 20, 28)", darkInit);
+  check("夜模式按钮显示「昼」", await cdp.eval(`document.getElementById('btn-theme').textContent === '昼'`));
+  await cdp.shot("05-home-dark");
+  // 切昼
+  await cdp.eval(`document.getElementById('btn-theme').click()`);
+  const lightBg = await cdp.eval(`getComputedStyle(document.body).backgroundColor`);
+  check("切昼后背景为宣纸色", lightBg === "rgb(241, 236, 226)", lightBg);
+  check("昼模式 data-theme 正确", await cdp.eval(`document.documentElement.dataset.theme === 'light'`));
+  check("昼模式已记忆", await cdp.eval(`localStorage.getItem('yizhuxiang-theme') === 'light'`));
+  check("昼模式按钮显示「夜」", await cdp.eval(`document.getElementById('btn-theme').textContent === '夜'`));
+  await cdp.shot("06-home-light");
+  await cdp.eval(`document.querySelector('#nav .nav-btn[data-view="stats"]').click()`);
+  await sleep(800);
+  await cdp.shot("07-stats-light");
+  await cdp.eval(`document.querySelector('#nav .nav-btn[data-view="settings"]').click()`);
+  await sleep(500);
+  await cdp.shot("08-settings-light");
+  // 切回夜
+  await cdp.eval(`document.getElementById('btn-theme').click()`);
+  const darkBg = await cdp.eval(`getComputedStyle(document.body).backgroundColor`);
+  check("切回夜后背景为墨色", darkBg === "rgb(20, 20, 28)", darkBg);
+  check("夜模式 data-theme 正确", await cdp.eval(`document.documentElement.dataset.theme === 'dark'`));
+  check("夜模式已记忆", await cdp.eval(`localStorage.getItem('yizhuxiang-theme') === 'dark'`));
+  check("夜模式按钮显示「昼」", await cdp.eval(`document.getElementById('btn-theme').textContent === '昼'`));
+  await cdp.shot("09-settings-dark");
+  await cdp.eval(`document.querySelector('#nav .nav-btn[data-view="stats"]').click()`);
+  await sleep(800);
+  await cdp.shot("10-stats-dark");
+  await cdp.eval(`document.querySelector('#nav .nav-btn[data-view="home"]').click()`);
+  await sleep(500);
+  await cdp.shot("11-home-dark");
+  // 夜下看启动弹窗
+  await cdp.eval(`document.getElementById('btn-start').click()`);
+  await waitFor(`getComputedStyle(document.getElementById('overlay-startup')).display !== 'none'`);
+  await cdp.shot("12-startup-dark");
+  await cdp.eval(`document.getElementById('btn-cancel-start').click()`);
   console.log(`\nE2E 结果: ${passed} 通过, ${failed} 失败`);
   cdp.close();
   child.kill();
   server.kill();
   await sleep(500);
+  if (process.env.KEEP_ART) {
+    const dest = path.join(__dirname, "..", ".e2e_artifacts");
+    fs.mkdirSync(dest, { recursive: true });
+    try { for (const f of fs.readdirSync(ART)) fs.copyFileSync(path.join(ART, f), path.join(dest, f)); console.log("  [截图已保留] -> .e2e_artifacts/"); } catch (e) {}
+  }
   try { fs.rmSync(RUN, { recursive: true, force: true }); } catch (e) {}
   process.exit(failed ? 1 : 0);
 }
@@ -201,6 +251,11 @@ main().catch(async (e) => {
   child.kill();
   server.kill();
   await sleep(500);
+  if (process.env.KEEP_ART) {
+    const dest = path.join(__dirname, "..", ".e2e_artifacts");
+    fs.mkdirSync(dest, { recursive: true });
+    try { for (const f of fs.readdirSync(ART)) fs.copyFileSync(path.join(ART, f), path.join(dest, f)); console.log("  [截图已保留] -> .e2e_artifacts/"); } catch (e) {}
+  }
   try { fs.rmSync(RUN, { recursive: true, force: true }); } catch (err) {}
   process.exit(1);
 });

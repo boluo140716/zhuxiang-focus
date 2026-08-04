@@ -1,11 +1,13 @@
-/* FocusDojo 前端逻辑：会话、计时、归因、离线队列、统计、设置 */
+/* 一炷香 前端逻辑：会话、计时、归因、离线队列、统计、设置、主题、印章 */
 "use strict";
 
 const $ = (id) => document.getElementById(id);
 const IDLE_MS = 3 * 60 * 1000; // 电脑端无操作阈值
 const QKEY = "fd_queue";
+const FD_THEME_KEY = "yizhuxiang-theme";
 const MIDKEY = "fd_idmap";
 const LOCAL_SESSION = "fd_local_session";
+const GRAD_DAYS = 28; // 结业卷轴目标：连续 4 周（约 28 天）
 
 const state = {
   session: null,
@@ -174,10 +176,37 @@ async function refreshHome() {
     $("today-sessions").textContent = daily.completed_sessions;
     $("today-distractions").textContent = daily.distractions;
     $("streak-num").textContent = weekly.streak;
+    renderSeals(daily, weekly);
     const rebound = !daily.qualified && daily.total_sessions > 0;
     $("rebound-area").hidden = !rebound;
     deepTimeReminder();
   } catch (e) { /* 离线时忽略 */ }
+}
+
+function renderSeals(daily, weekly) {
+  const today = $("today-seal");
+  if (today) {
+    today.classList.toggle("done", !!daily.qualified);
+    today.classList.toggle("empty", !daily.qualified);
+  }
+  const weekSeals = $("week-seals");
+  if (!weekSeals || !weekly.days) return;
+  weekSeals.innerHTML = "";
+  const dowText = "日一二三四五六";
+  weekly.days.forEach((d) => {
+    const wrap = document.createElement("div");
+    wrap.className = "seal-wrap";
+    const day = new Date(d.date + "T00:00:00");
+    const sm = document.createElement("div");
+    sm.className = "seal-sm " + (d.qualified ? "done" : "empty");
+    sm.textContent = String(day.getDate());
+    const dow = document.createElement("div");
+    dow.className = "seal-dow";
+    dow.textContent = dowText[day.getDay()];
+    wrap.appendChild(sm);
+    wrap.appendChild(dow);
+    weekSeals.appendChild(wrap);
+  });
 }
 
 function enterRunning() {
@@ -288,7 +317,7 @@ async function refreshStats() {
   chart.innerHTML = "";
   weekly.days.forEach((d, i) => {
     const bar = document.createElement("div");
-    bar.className = "day-bar" + (d.focus_minutes > 0 ? " filled" : "");
+    bar.className = "day-bar" + (d.qualified ? " filled qualified" : "");
     bar.style.height = `${Math.max(6, (d.focus_minutes / maxMin) * 100)}px`;
     const label = document.createElement("div");
     label.className = "d";
@@ -298,6 +327,11 @@ async function refreshStats() {
   });
   $("week-rate").textContent = Math.round(weekly.completion_rate * 100) + "%";
   $("week-streak").textContent = weekly.streak;
+
+  const streak = weekly.streak || 0;
+  const weeksLeft = Math.max(0, Math.ceil((GRAD_DAYS - streak) / 7));
+  $("scroll-text").textContent = `连续达标 ${streak} 天 · 距毕业约 ${weeksLeft} 周`;
+  $("scroll-fill").style.width = `${Math.min(1, streak / GRAD_DAYS) * 100}%`;
   $("next-target").textContent = next.suggested_target;
   state.suggestedTarget = next.suggested_target;
 
@@ -351,11 +385,34 @@ function parseTime(t) {
   return (h || 0) * 60 + (m || 0);
 }
 
+/* ---------- 昼夜主题 ---------- */
+function currentTheme() {
+  if (document.documentElement.dataset.theme) return document.documentElement.dataset.theme;
+  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) return "light";
+  return "dark";
+}
+function initTheme() {
+  const saved = localStorage.getItem(FD_THEME_KEY);
+  if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
+  updateThemeButton();
+}
+function updateThemeButton() {
+  $("btn-theme").textContent = currentTheme() === "dark" ? "昼" : "夜";
+}
+function toggleTheme() {
+  const next = currentTheme() === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem(FD_THEME_KEY, next);
+  updateThemeButton();
+}
+
 /* ---------- 事件绑定 ---------- */
 function hideOverlay(id) { $(`overlay-${id}`).hidden = true; }
 
 function bindEvents() {
   document.querySelectorAll("#nav .nav-btn").forEach((b) => b.addEventListener("click", () => switchView(b.dataset.view)));
+
+  $("btn-theme").addEventListener("click", toggleTheme);
 
   $("btn-start").addEventListener("click", () => {
     $("startup-task").value = $("task-input").value;
@@ -445,6 +502,7 @@ function registerSW() {
 /* ---------- 启动 ---------- */
 async function init() {
   bindEvents();
+  initTheme();
   registerSW();
   try { state.settings = await apiDirect("/api/settings"); } catch (e) {}
   if (state.settings) applySettingsToForm();

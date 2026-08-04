@@ -3,15 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>FocusDojo 专注训练营</title>
+<title>一炷香 专注训练营</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="theme-color" content="#12121e">
-<!-- 缓存版本 v5：升级时需同步修改本文件两处 ?v=、sw.js 的 CACHE/ASSETS、README 的逃生地址 -->
-<link rel="stylesheet" href="style.css?v=5">
+<meta name="theme-color" content="#14141c">
+<!-- 缓存版本 v6：升级时需同步修改本文件两处 ?v=、sw.js 的 CACHE/ASSETS、README 的逃生地址 -->
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 <div id="app">
+  <div id="brandbar">
+    <div class="brand-left">
+      <div class="brand-seal" aria-hidden="true">香</div>
+      <span class="brand-name">一炷香</span>
+    </div>
+    <button id="btn-theme" type="button">昼</button>
+  </div>
+
   <nav id="nav">
     <button class="nav-btn active" data-view="home">专注</button>
     <button class="nav-btn" data-view="stats">统计</button>
@@ -22,13 +30,17 @@
     <!-- 主页 -->
     <section id="view-home">
       <div id="home-idle">
-        <h2 id="today-title">今天</h2>
+        <div class="today-head">
+          <div id="today-seal" class="seal empty" aria-label="今日印章">香</div>
+          <h2 id="today-title">今天</h2>
+        </div>
         <div id="today-cards" class="cards">
           <div class="card"><div class="num" id="today-focus">0</div><div class="label">专注分钟</div></div>
           <div class="card"><div class="num" id="today-sessions">0</div><div class="label">完成场次</div></div>
           <div class="card"><div class="num" id="today-distractions">0</div><div class="label">分心次数</div></div>
           <div class="card"><div class="num" id="streak-num">0</div><div class="label">连续达标天</div></div>
         </div>
+        <div id="week-seals" class="week-seals" aria-label="本周集印"></div>
         <div id="rebound-area" hidden>
           <p class="hint">今天还没达标，来个 5 分钟回弹任务，不让连续断掉。</p>
           <button class="btn btn-ghost" id="btn-rebound">开始回弹（5 分钟）</button>
@@ -50,7 +62,7 @@
           <div class="timer" id="timer">00:00</div>
           <div class="row">
             <button class="btn btn-ghost" id="btn-distract">破功了</button>
-            <button class="btn btn-danger" id="btn-abandon">放弃</button>
+            <button class="btn btn-ghost" id="btn-abandon">放弃</button>
             <button class="btn btn-primary" id="btn-complete">完成</button>
           </div>
           <p class="hint" id="running-hint">放下手机，专注于当前任务。</p>
@@ -66,6 +78,12 @@
         <div class="card"><div class="num" id="week-rate">0%</div><div class="label">本周达标率</div></div>
         <div class="card"><div class="num" id="week-streak">0</div><div class="label">连续达标天</div></div>
         <div class="card"><div class="num" id="next-target">—</div><div class="label">下周建议分钟</div></div>
+      </div>
+      <div class="panel" id="scroll-panel">
+        <h3>结业卷轴</h3>
+        <p id="scroll-text">连续达标 0 天 · 距毕业约 4 周</p>
+        <div class="scroll-track"><div id="scroll-fill" class="scroll-fill"></div></div>
+        <p class="hint">连续 4 周达标，即可毕业脱离产品。</p>
       </div>
       <div class="panel">
         <h3>洞察</h3>
@@ -112,7 +130,7 @@
 <!-- 启动仪式 -->
 <div id="overlay-startup" class="overlay" hidden>
   <div class="overlay-box">
-    <h3>先写下目标</h3>
+    <h3><span class="box-seal">启</span>先写下目标</h3>
     <p class="hint">30 秒，想清楚这次要完成什么。</p>
     <input id="startup-task" type="text" placeholder="这次要完成什么？" maxlength="100">
     <div class="row">
@@ -127,7 +145,7 @@
 <!-- 质量自评 -->
 <div id="overlay-review" class="overlay" hidden>
   <div class="overlay-box">
-    <h3>这场专注怎么样？</h3>
+    <h3><span class="box-seal">评</span>这场专注怎么样？</h3>
     <div class="row">
       <label>完成度 <span id="completion-label">50</span>%</label>
       <input id="completion-slider" type="range" min="0" max="100" step="10" value="50">
@@ -145,7 +163,7 @@
 <!-- 手机归因 -->
 <div id="overlay-attribution" class="overlay" hidden>
   <div class="overlay-box">
-    <h3>刚才离开 <span id="attr-duration">0</span> 分钟</h3>
+    <h3><span class="box-seal">归</span>刚才离开 <span id="attr-duration">0</span> 分钟</h3>
     <p class="hint">去哪了？（不选的话按"刷手机"记录）</p>
     <div class="row">
       <button class="btn" data-reason="刷手机">刷手机</button>
@@ -160,7 +178,7 @@
 <!-- 电脑补问 -->
 <div id="overlay-idle" class="overlay" hidden>
   <div class="overlay-box">
-    <h3>刚才一段时间没动静</h3>
+    <h3><span class="box-seal">问</span>刚才一段时间没动静</h3>
     <p class="hint">是在忙正事，还是走神了？</p>
     <div class="row">
       <button class="btn" data-idle="distracted">走神了</button>
@@ -172,6 +190,6 @@
 </div>
 
 <div id="toast" hidden></div>
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 </body>
 </html>

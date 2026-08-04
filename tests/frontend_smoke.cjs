@@ -1,4 +1,4 @@
-﻿/* FocusDojo 前端冒烟测试（jsdom）：核心流程 + 遗留会话自动结束 + 弹窗逃生 */
+﻿/* 一炷香 前端冒烟测试（jsdom）：核心流程 + 遗留会话自动结束 + 弹窗逃生 + 主题/印章/卷轴 */
 "use strict";
 const fs = require("fs");
 const path = require("path");
@@ -19,18 +19,18 @@ const NOW = Date.now();
 function daily(total = 0, qualified = false) {
   return { date: "2026-08-04", focus_minutes: 0, completed_sessions: 0, abandoned_sessions: 0, total_sessions: total, distractions: 0, distraction_minutes: 0, distraction_by_hour: [], qualified };
 }
-function weekly() {
+function weekly(opts = {}) {
   const days = [];
   const today = new Date(NOW);
   for (let i = 6; i >= 0; i--) {
     const d = new Date(today.getTime() - (6 - i) * 86400000);
     const iso = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    days.push({ date: iso, focus_minutes: 0, qualified: false });
+    days.push({ date: iso, focus_minutes: 0, qualified: !!(opts.qualifiedDays && opts.qualifiedDays.includes(6 - i)) });
   }
-  return { days, completion_rate: 0, streak: 0 };
+  return { days, completion_rate: 0, streak: opts.streak || 0 };
 }
 
-async function boot({ current = null, localSession = null, totalSessions = 0, qualified = false } = {}) {
+async function boot({ current = null, localSession = null, totalSessions = 0, qualified = false, weeklyOpts = {} } = {}) {
   const dom = new JSDOM(html, { url: "http://127.0.0.1:8000/", pretendToBeVisual: true, runScripts: "outside-only" });
   const { window } = dom;
   const requests = [];
@@ -41,7 +41,7 @@ async function boot({ current = null, localSession = null, totalSessions = 0, qu
     if (u === "/api/settings") return { ok: true, status: 200, json: async () => ({ blacklist: [], target_minutes: 15, deep_start: "09:00", deep_end: "11:00", reminder_enabled: false }) };
     if (u === "/api/sessions/current") return current ? { ok: true, status: 200, json: async () => current } : { ok: false, status: 404, json: async () => ({}) };
     if (u === "/api/stats/daily") return { ok: true, status: 200, json: async () => daily(totalSessions, qualified) };
-    if (u === "/api/stats/weekly") return { ok: true, status: 200, json: async () => weekly() };
+    if (u === "/api/stats/weekly") return { ok: true, status: 200, json: async () => weekly(weeklyOpts) };
     if (u === "/api/stats/insights") return { ok: true, status: 200, json: async () => ({ total_distractions: 0, worst_hours: [], phone_pickups: 0, auto_detected: 0 }) };
     if (u === "/api/stats/next_target") return { ok: true, status: 200, json: async () => ({ suggested_target: 15 }) };
     if (u === "/api/sessions" && method === "POST") { const b = JSON.parse(opts.body || "{}"); return { ok: true, status: 201, json: async () => ({ id: 1, task_name: b.task_name, planned_minutes: b.planned_minutes, started_at: NOW, device: "desktop", stage: "training", status: "running" }) }; }
@@ -150,6 +150,56 @@ async function boot({ current = null, localSession = null, totalSessions = 0, qu
     await sleep(80);
     check("进入专注视图", !doc.getElementById("home-running").hidden);
     check("任务名回填", doc.getElementById("running-task").textContent === "读 20 页书");
+  }
+
+  console.log("== T8 昼夜主题切换 ==");
+  {
+    const { window } = await boot();
+    const doc = window.document;
+    const btn = doc.getElementById("btn-theme");
+    check("主题按钮存在", !!btn);
+    btn.click();
+    const saved = window.localStorage.getItem("yizhuxiang-theme");
+    check("点击后 data-theme 已设置", doc.documentElement.dataset.theme === saved);
+    check("localStorage 已记忆", saved === "light" || saved === "dark");
+    check("按钮显示另一面", btn.textContent === (saved === "dark" ? "昼" : "夜"));
+    btn.click();
+    const saved2 = window.localStorage.getItem("yizhuxiang-theme");
+    check("再次点击可切回", saved2 !== saved);
+  }
+
+  console.log("== T9 今日印章与集印条 ==");
+  {
+    const { window } = await boot({ qualified: false });
+    const doc = window.document;
+    check("今日大印存在", !!doc.getElementById("today-seal"));
+    check("未达标为空印", doc.getElementById("today-seal").classList.contains("empty"));
+    check("集印条渲染 7 枚", doc.querySelectorAll("#week-seals .seal-sm").length === 7);
+    check("无达标时全为空印", doc.querySelectorAll("#week-seals .seal-sm.empty").length === 7);
+  }
+  {
+    const { window } = await boot({ qualified: true, weeklyOpts: { streak: 3, qualifiedDays: [6] } });
+    const doc = window.document;
+    check("达标为实印", doc.getElementById("today-seal").classList.contains("done"));
+    check("今天小印实心", doc.querySelectorAll("#week-seals .seal-sm.done").length === 1);
+  }
+
+  console.log("== T10 结业卷轴 ==");
+  {
+    const { window } = await boot({ weeklyOpts: { streak: 0 } });
+    const doc = window.document;
+    doc.querySelector('#nav .nav-btn[data-view="stats"]').click();
+    await sleep(80);
+    check("streak=0 距毕业 4 周", doc.getElementById("scroll-text").textContent.includes("距毕业约 4 周"));
+    check("进度条 0%", doc.getElementById("scroll-fill").style.width === "0%");
+  }
+  {
+    const { window } = await boot({ weeklyOpts: { streak: 28 } });
+    const doc = window.document;
+    doc.querySelector('#nav .nav-btn[data-view="stats"]').click();
+    await sleep(80);
+    check("streak=28 距毕业 0 周", doc.getElementById("scroll-text").textContent.includes("距毕业约 0 周"));
+    check("进度条 100%", doc.getElementById("scroll-fill").style.width === "100%");
   }
 
   console.log(`\n结果: ${passed} 通过, ${failed} 失败`);

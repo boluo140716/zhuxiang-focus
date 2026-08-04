@@ -2,7 +2,7 @@
 import os
 import tempfile
 
-_tmp_dir = tempfile.mkdtemp(prefix="focusdojo_test_")
+_tmp_dir = tempfile.mkdtemp(prefix="yizhuxiang_test_")
 os.environ["FOCUS_DB_PATH"] = os.path.join(_tmp_dir, "test.db")
 
 import pytest
