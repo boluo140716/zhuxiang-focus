@@ -2,34 +2,91 @@
 from datetime import date, timedelta
 
 
-def is_qualified_day(sessions, target_minutes: int, day: date) -> bool:
-    """达标日：当天有会话实际时长 >= 目标*80% 且完成度自评 >= 60。"""
+MIN_QUALIFY_MINUTES = 15  # 达标下限：当天完成时长至少 15 分钟（防止一分钟打卡刷达标）
+
+
+def _day_stats(sessions, day: date):
+    """当天统计：(完成时长, 总投入时长=完成+放弃实际, 完成度列表, 是否有心流>=3)。"""
+    done_min = 0
+    invest_min = 0
+    scores = []
+    flow_ok = False
     for s in sessions:
-        if s.status != "completed" or s.started_at.date() != day:
+        if s.started_at.date() != day:
             continue
-        if s.actual_minutes >= int(target_minutes * 0.8) and s.completion_score is not None and s.completion_score >= 60:
-            return True
-    return False
+        if s.status == "completed":
+            done_min += s.actual_minutes
+            invest_min += s.actual_minutes
+            if s.completion_score is not None:
+                scores.append(s.completion_score)
+            if s.flow_score is not None and s.flow_score >= 3:
+                flow_ok = True
+        elif s.status == "abandoned":
+            invest_min += s.actual_minutes
+    return done_min, invest_min, scores, flow_ok
 
 
-def qualified_days(sessions, target_minutes: int) -> set:
-    """返回所有达标日集合。"""
-    result = set()
+def is_qualified_day(sessions, day: date) -> bool:
+    """达标日：完成时长 >= 总投入*60%（完成率>=60%）且 >= 15 分钟，平均完成度 >= 60，且至少一场心流 >= 3。"""
+    done_min, invest_min, scores, flow_ok = _day_stats(sessions, day)
+    if not scores or invest_min <= 0:
+        return False
+    avg = sum(scores) / len(scores)
+    return flow_ok and avg >= 60 and done_min >= MIN_QUALIFY_MINUTES and done_min >= invest_min * 0.6
+
+
+def qualified_days(sessions) -> set:
+    """返回所有达标日集合（完成率规则：放弃计入总投入，完成率>=60% 且 >=15 分钟）。"""
+    by_day = {}
     for s in sessions:
-        if s.status == "completed" and s.completion_score is not None and s.completion_score >= 60:
-            if s.actual_minutes >= int(target_minutes * 0.8):
-                result.add(s.started_at.date())
+        day = s.started_at.date()
+        b = by_day.setdefault(day, {"done": 0, "invest": 0, "scores": [], "flow_ok": False})
+        if s.status == "completed":
+            b["done"] += s.actual_minutes
+            b["invest"] += s.actual_minutes
+            if s.completion_score is not None:
+                b["scores"].append(s.completion_score)
+            if s.flow_score is not None and s.flow_score >= 3:
+                b["flow_ok"] = True
+        elif s.status == "abandoned":
+            b["invest"] += s.actual_minutes
+    result = set()
+    for d, b in by_day.items():
+        if not b["scores"] or b["invest"] <= 0:
+            continue
+        avg = sum(b["scores"]) / len(b["scores"])
+        if b["flow_ok"] and avg >= 60 and b["done"] >= MIN_QUALIFY_MINUTES and b["done"] >= b["invest"] * 0.6:
+            result.add(d)
     return result
 
 
-def compute_streak(qualified: set, today: date) -> int:
-    """连续达标天数：今天未达标时从昨天起算（不归零的友好语义）。"""
+def compute_streak(qualified: set, sessions, today: date) -> int:
+    """连续达标天数（激励信号）：无会话记录的天跳过（休息不断），有会话记录但未达标的天停止。"""
+    recorded = {s.started_at.date() for s in sessions}
+    if not recorded:
+        return 0
+    used_but_failed = {d for d in recorded if d not in qualified}
     d = today if today in qualified else today - timedelta(days=1)
     streak = 0
-    while d in qualified:
-        streak += 1
+    while d not in used_but_failed and d >= min(recorded):
+        if d in qualified:
+            streak += 1
         d -= timedelta(days=1)
     return streak
+
+
+def graduation_status(sessions, today: date) -> dict:
+    """近 28 天毕业状态：达标率 >= 60% 且 靠自己比例 >= 50% 即可毕业。"""
+    since = today - timedelta(days=27)
+    qualified = qualified_days(sessions)
+    day_count = 28
+    days = {since + timedelta(days=i) for i in range(day_count)}
+    rate = len(days & qualified) / day_count
+    completed = [s for s in sessions if s.status == "completed" and since <= s.started_at.date() <= today]
+    self_count = sum(1 for s in completed if s.reliance == "self")
+    self_rate = self_count / len(completed) if completed else None
+    eligible = rate >= 0.6 and self_rate is not None and self_rate >= 0.5
+    return {"rate_28d": rate, "self_rate_28d": self_rate, "eligible": eligible}
 
 
 def week_completion_rate(qualified: set, today: date) -> float:
@@ -39,10 +96,16 @@ def week_completion_rate(qualified: set, today: date) -> float:
     return hit / 7
 
 
-def next_target(rate: float, current_target: int) -> int:
-    """下周建议时长：完成率 > 80% 加 5 分钟；< 50% 减 5；否则不变。上限 60，下限 5。"""
-    if rate > 0.8:
-        return min(60, current_target + 5)
-    if rate < 0.5:
-        return max(5, current_target - 5)
-    return current_target
+
+
+STAGE_NAMES = {"awareness": "受训期", "training": "过渡期", "habit": "预备毕业"}
+
+
+def stage_timeline(sessions) -> list:
+    """按时间返回用户经历过的档位名称序列（首次出现顺序，去重）。"""
+    seen = []
+    for s in sorted(sessions, key=lambda x: x.started_at):
+        name = STAGE_NAMES.get(s.stage or "")
+        if name and name not in seen:
+            seen.append(name)
+    return seen

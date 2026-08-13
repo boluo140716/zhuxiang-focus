@@ -1,4 +1,4 @@
-/* 一炷香：书道道场视觉
+/* 篆香：书道道场视觉
    规则：
    1. [hidden] 必须真正隐藏元素 —— 元素显隐统一走 hidden 属性，不要用 class 控制 display。
    2. 颜色全部走 CSS 变量（昼夜两套），不要写死色值；强调色上的文字用 --on-accent。
@@ -18,6 +18,16 @@
   --gold: #c9a05c;
   --line: rgba(255,255,255,.08);
   --overlay-bg: rgba(12,12,18,.82);
+  /* 香：物理物件固有颜色，昼夜一致 */
+  --incense-ash-top: #efe9dc; --incense-ash-mid: #ded7c8; --incense-ash-bottom: #c6beb0;
+  --incense-wood-top: #4a3220; --incense-wood-mid: #3a2618; --incense-wood-bottom: #57402a;
+  --ember-a: #a8502c; --ember-b: #8a3e22; --ember-c: #5f2a16; --ember-glow: #5c2c16;
+  --smoke-a: rgba(255,255,255,.88);
+  --burner-base: #57442e;
+  --burner-high: #8a7450;
+  --burner-edge: #362a1c;
+  --burner-rim: #b0935c;
+  --burner-ash: #cfc6b4;
   --font-display: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "STSong", "SimSun", serif;
   --font-body: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", "Noto Sans SC", sans-serif;
 }
@@ -34,6 +44,13 @@
     --gold: #a8843c;
     --line: rgba(0,0,0,.10);
     --overlay-bg: rgba(30,26,20,.50);
+  --smoke-a: rgba(116,106,92,.58);
+  --burner-base: #6f5c3c;
+  --burner-high: #9c8458;
+  --burner-edge: #463826;
+  --burner-rim: #c0a468;
+  --burner-ash: #d8d0c0;
+  --ember-glow: #b05a34;
   }
 }
 
@@ -48,6 +65,13 @@
   --gold: #a8843c;
   --line: rgba(0,0,0,.10);
   --overlay-bg: rgba(30,26,20,.50);
+  --smoke-a: rgba(116,106,92,.58);
+  --burner-base: #6f5c3c;
+  --burner-high: #9c8458;
+  --burner-edge: #463826;
+  --burner-rim: #c0a468;
+  --burner-ash: #d8d0c0;
+  --ember-glow: #b05a34;
 }
 :root[data-theme="dark"] {
   --bg: #14141c;
@@ -60,6 +84,16 @@
   --gold: #c9a05c;
   --line: rgba(255,255,255,.08);
   --overlay-bg: rgba(12,12,18,.82);
+  /* 香：物理物件固有颜色，昼夜一致 */
+  --incense-ash-top: #efe9dc; --incense-ash-mid: #ded7c8; --incense-ash-bottom: #c6beb0;
+  --incense-wood-top: #4a3220; --incense-wood-mid: #3a2618; --incense-wood-bottom: #57402a;
+  --ember-a: #a8502c; --ember-b: #8a3e22; --ember-c: #5f2a16; --ember-glow: #5c2c16;
+  --smoke-a: rgba(255,255,255,.88);
+  --burner-base: #57442e;
+  --burner-high: #8a7450;
+  --burner-edge: #362a1c;
+  --burner-rim: #b0935c;
+  --burner-ash: #cfc6b4;
 }
 
 html { background: var(--bg); }
@@ -142,15 +176,16 @@ h3 { font-size: 16px; margin-bottom: 8px; font-family: var(--font-display); }
 
 /* ---------- 表单 ---------- */
 .row { display: flex; align-items: center; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
-input[type="text"], input[type="time"], textarea {
+input[type="text"], input[type="time"], input[type="password"], input[type="number"], textarea, select {
   width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--line);
   background: var(--panel2); color: var(--text); font-size: 15px;
   font-family: var(--font-body);
 }
-input[type="text"]:focus, input[type="time"]:focus, textarea:focus {
+input[type="text"]:focus, input[type="time"]:focus, input[type="password"]:focus, input[type="number"]:focus, textarea:focus, select:focus {
   outline: 2px solid var(--accent); outline-offset: 1px;
 }
 textarea { resize: vertical; }
+select { width: auto; padding: 8px 10px; }
 input[type="range"] { flex: 1; accent-color: var(--accent); }
 
 /* ---------- 按钮 ---------- */
@@ -165,9 +200,335 @@ input[type="range"] { flex: 1; accent-color: var(--accent); }
 .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.hint { color: var(--muted); font-size: 13px; margin: 6px 0; }
+.hint { color: var(--muted); font-size: 13px; margin: 6px 0; text-align: center; }
 .tiny { color: var(--muted); font-size: 12px; }
+#profile-msg { text-align: center; }
 
+/* ---------- 香燃计时 ---------- */
+.incense {
+  position: relative; width: 8px; height: min(176px, 24vh); margin: 26px auto 92px;
+}
+.incense-stick {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  justify-content: flex-end;
+
+}
+/* 墨褐香身：木纹纤维，上粗下细 */
+.incense-burn {
+  position: relative; width: 100%; height: 100%; flex-shrink: 0;
+  border-radius: 3px 3px 2px 2px; overflow: hidden;
+  clip-path: polygon(0% 0, 100% 0, 80% 100%, 20% 100%);
+  background:
+    repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, rgba(0,0,0,0) 1px 3px),
+    linear-gradient(to bottom, var(--incense-wood-top), var(--incense-wood-mid) 62%, var(--incense-wood-bottom));
+}
+/* 燃烧热区：炭黑 → 热棕 → 透明，跟随燃点 */
+.incense-heat {
+  position: absolute; left: 0; right: 0; top: 0; height: 46px;
+  background: linear-gradient(to bottom,
+    rgba(8,6,5,.99) 0%,
+    rgba(24,16,10,.95) 18%,
+    rgba(38,24,14,.9) 38%,
+    rgba(150,74,38,.45) 58%,
+    rgba(122,70,36,.2) 78%,
+    rgba(122,70,36,0) 100%);
+  pointer-events: none;
+}
+/* 卷曲灰帽：随燃点同步下移 */
+.incense-ash {
+  position: absolute; left: -1px; right: -1px; top: 0; height: 9px;
+  background:
+    radial-gradient(ellipse at 50% 14%, rgba(26,20,16,.95), transparent 40%),
+    linear-gradient(to bottom, rgba(32,26,20,.92) 0 4px, var(--incense-ash-mid) 5px, var(--incense-ash-bottom) 84%);
+  border-radius: 7px 4px 3px 3px / 11px 6px 3px 3px;
+  box-shadow: inset 0 -2px 3px rgba(0,0,0,.26);
+}
+.incense-ash::before {
+  content: ""; position: absolute; left: -3px; right: -3px; top: 6px; height: 7px;
+  background: radial-gradient(ellipse at 50% 28%, var(--incense-ash-mid), var(--incense-ash-bottom) 80%);
+  border-radius: 60% 55% 42% 48% / 72% 64% 30% 36%;
+  filter: blur(.8px);
+}
+/* 暗火：3px 光点 + 大半径低透明朱砂光晕，缓慢呼吸 */
+.incense-tip {
+  position: absolute; left: 50%; top: 2px;
+  width: 3px; height: 3px; transform: translate(-50%, -50%);
+  background: radial-gradient(circle, var(--ember-a) 0%, var(--ember-c) 55%, rgba(0,0,0,0) 100%);
+  border-radius: 50%;
+  box-shadow: 0 0 2px var(--ember-glow), 0 0 6px var(--ember-glow);
+  transition: top 1.2s cubic-bezier(.45,.05,.55,.95), opacity .6s ease;
+  animation: incense-ember 4.2s ease-in-out infinite;
+}
+.incense-tip::after {
+  content: ""; position: absolute; left: 50%; top: 50%;
+  width: 14px; height: 14px; transform: translate(-50%, -50%);
+  background: radial-gradient(circle, var(--ember-glow) 0%, rgba(150,64,32,0) 72%);
+  border-radius: 50%;
+  opacity: .5;
+  pointer-events: none;
+  animation: incense-ember-halo 4.2s ease-in-out infinite;
+}
+
+@keyframes incense-ember-halo {
+  0%, 100% { opacity: .38; }
+  50% { opacity: .18; }
+}
+@keyframes incense-ember {
+  0%, 100% { box-shadow: 0 0 2px var(--ember-glow), 0 0 6px var(--ember-glow); }
+  50% { box-shadow: 0 0 1.5px var(--ember-glow), 0 0 4px var(--ember-glow); }
+}
+
+/* 一缕烟：单条细线，≤2px、≤15% 透明，轻微 S 形，顶部渐隐（静态版，形状确认后再加飘动） */
+.incense-wisp {
+  position: absolute; left: 50%; top: 0%;
+  width: 60px; height: 160px; margin-left: -30px;
+  pointer-events: none; z-index: 1;
+  transition: top 1.2s cubic-bezier(.45,.05,.55,.95), opacity 1s ease;
+}
+.incense-time {
+  text-align: center; color: var(--muted); font-size: 14px;
+  margin: 0 0 2px; font-variant-numeric: tabular-nums;
+}
+.incense-done { text-align: center; color: var(--accent); font-weight: 600; margin-top: 2px; }
+
+/* 灰烬掉落：随机飘落到香炉上消失 */
+.incense-fall {
+  position: absolute; left: 50%; top: 2px; width: 0; height: 0;
+  transition: top 1.2s cubic-bezier(.45,.05,.55,.95), opacity .6s ease;
+}
+.incense-fall span {
+  position: absolute; top: 0;
+  width: 2.5px; height: 2.5px;
+  background: radial-gradient(circle, #8a7e70, #5a5048);
+  border-radius: 50%;
+  opacity: 0;
+  animation: ash-fall 2.8s ease-in infinite;
+}
+.incense-fall span:nth-child(1) { margin-left: -3px; animation-delay: .2s; animation-duration: 2.6s; }
+.incense-fall span:nth-child(2) { margin-left: 1px; animation-delay: 1.1s; animation-duration: 3s; }
+.incense-fall span:nth-child(3) { margin-left: -5px; animation-delay: 1.9s; animation-duration: 2.4s; }
+.incense-fall span:nth-child(4) { margin-left: 4px; animation-delay: 2.7s; animation-duration: 3.2s; }
+.incense-fall span:nth-child(5) { margin-left: -1px; animation-delay: 3.5s; animation-duration: 2.8s; }
+.incense-fall span:nth-child(6) { margin-left: 2px; animation-delay: .8s; animation-duration: 3.1s; }
+.incense-fall span:nth-child(7) { margin-left: -4px; animation-delay: 1.6s; animation-duration: 2.5s; }
+.incense-fall span:nth-child(8) { margin-left: 3px; animation-delay: 2.3s; animation-duration: 2.9s; }
+@keyframes ash-fall {
+  0% { opacity: 0; transform: translate(0, 0) scale(1); }
+  6% { opacity: .85; }
+  50% { opacity: .6; }
+  85% { opacity: .2; }
+  100% { opacity: 0; transform: translate(var(--drift, 3px), 62px) rotate(var(--rot, 90deg)) scale(.3); }
+}
+.incense-fall span:nth-child(1) { --drift: -5px; --rot: 110deg; }
+.incense-fall span:nth-child(2) { --drift: 4px; --rot: -80deg; }
+.incense-fall span:nth-child(3) { --drift: -7px; --rot: 130deg; }
+.incense-fall span:nth-child(4) { --drift: 6px; --rot: -100deg; }
+.incense-fall span:nth-child(5) { --drift: -2px; --rot: 70deg; }
+.incense-fall span:nth-child(6) { --drift: 5px; --rot: -120deg; }
+.incense-fall span:nth-child(7) { --drift: -6px; --rot: 90deg; }
+.incense-fall span:nth-child(8) { --drift: 3px; --rot: -70deg; }
+
+/* 香炉：古铜圆腹三足（弦纹 / 口沿厚度 / 厚重三足 / 不规则香灰） */
+.incense-burner {
+  position: absolute; left: 50%; top: calc(100% - 14px); transform: translateX(-50%);
+  width: 124px; height: 80px;
+}
+.incense-burner::before {
+  content: ""; position: absolute; left: 50%; bottom: -3px; transform: translateX(-50%);
+  width: 120px; height: 20px;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,.62), rgba(0,0,0,0) 72%);
+}
+.burner-body {
+  position: absolute; left: 50%; top: 24px; transform: translateX(-50%);
+  width: 104px; height: 46px;
+  border-radius: 30px 30px 34px 34px;
+  background:
+    linear-gradient(115deg, rgba(255,255,255,.10) 0 5%, rgba(255,255,255,0) 16%),
+    linear-gradient(90deg, rgba(0,0,0,.30), rgba(255,255,255,.08) 34%, rgba(0,0,0,.28) 66%, rgba(255,255,255,.05)),
+    radial-gradient(120% 120% at 50% 24%, var(--burner-high), var(--burner-base) 52%, var(--burner-edge) 96%);
+  box-shadow:
+    inset 0 -8px 10px rgba(0,0,0,.55),
+    inset 0 0 8px rgba(0,0,0,.35),
+    inset 0 2px 2px rgba(255,255,255,.15),
+    0 4px 5px rgba(0,0,0,.28);
+  filter: url(#bronze);
+}
+.burner-body::before {
+  content: ""; position: absolute; left: 14%; right: 14%; top: 26%; height: 3px;
+  background: radial-gradient(ellipse at center, rgba(255,255,255,.30), rgba(255,255,255,0) 66%);
+  border-radius: 2px;
+}
+.burner-body::after {
+  content: ""; position: absolute; left: 10%; right: 10%; top: 52%; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0,0,0,.22) 28%, rgba(0,0,0,.22) 72%, transparent);
+  border-radius: 1px;
+}
+.burner-body .string-line {
+  position: absolute; left: 12%; right: 12%; top: 40%; height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.15) 30%, rgba(255,255,255,.15) 70%, transparent);
+  border-radius: 1px;
+}
+/* 回纹 - 口沿下方折线纹带 */
+.burner-body .hui-pattern {
+  position: absolute; left: 8%; right: 8%; top: 14%; height: 10px;
+  display: flex; justify-content: center; gap: 0;
+  opacity: .35;
+}
+.burner-body .hui-pattern .hui-unit {
+  width: 10px; height: 8px;
+  border: 1.5px solid rgba(255,255,255,.25);
+  border-top: none;
+  border-radius: 0 0 2px 2px;
+  position: relative;
+}
+.burner-body .hui-pattern .hui-unit::before {
+  content: ""; position: absolute; top: -1px; left: 50%; transform: translateX(-50%);
+  width: 4px; height: 3px;
+  border: 1.5px solid rgba(255,255,255,.25);
+  border-bottom: none;
+  border-radius: 2px 2px 0 0;
+}
+/* 乳钉纹 - 炉腹凸钉 */
+.burner-body .boss-pattern {
+  position: absolute; left: 10%; right: 10%; top: 58%; height: 12px;
+  display: flex; justify-content: space-evenly; align-items: center;
+  opacity: .30;
+}
+.burner-body .boss-pattern .boss {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,.22), rgba(0,0,0,.15));
+  box-shadow: 0 1px 1px rgba(0,0,0,.2), inset 0 -1px 1px rgba(0,0,0,.15);
+}
+/* 云纹 - 两侧云气纹 */
+.burner-body .cloud-pattern {
+  position: absolute; top: 30%; width: 16px; height: 20px;
+  opacity: .22;
+}
+.burner-body .cloud-pattern::before {
+  content: ""; position: absolute; top: 0; left: 0;
+  width: 12px; height: 10px;
+  border: 1.5px solid rgba(255,255,255,.30);
+  border-right: none;
+  border-radius: 8px 0 0 8px;
+}
+.burner-body .cloud-pattern::after {
+  content: ""; position: absolute; bottom: 0; left: 2px;
+  width: 8px; height: 8px;
+  border: 1.5px solid rgba(255,255,255,.30);
+  border-right: none;
+  border-radius: 6px 0 0 6px;
+}
+.burner-body .cloud-pattern.cloud-r {
+  right: 6%; left: auto;
+}
+.burner-body .cloud-pattern.cloud-r::before {
+  left: auto; right: 0;
+  border: 1.5px solid rgba(255,255,255,.30);
+  border-left: none;
+  border-radius: 0 8px 8px 0;
+}
+.burner-body .cloud-pattern.cloud-r::after {
+  left: auto; right: 2px;
+  border: 1.5px solid rgba(255,255,255,.30);
+  border-left: none;
+  border-radius: 0 6px 6px 0;
+}
+.burner-rim {
+  position: absolute; left: 50%; top: 2px; transform: translateX(-50%);
+  width: 118px; height: 26px; border-radius: 50%;
+  background: linear-gradient(to bottom, var(--burner-rim), var(--burner-base) 82%);
+  box-shadow: inset 0 -4px 5px rgba(0,0,0,.5), inset 0 2px 3px rgba(255,255,255,.4), inset 0 1px 0 rgba(255,255,255,.35), 0 1px 2px rgba(0,0,0,.32);
+  filter: url(#bronze);
+  z-index: 1;
+}
+.burner-rim::before {
+  content: ""; position: absolute; left: 8%; right: 8%; top: 38%; height: 40%;
+  border-radius: 50%;
+  background: linear-gradient(to bottom, rgba(0,0,0,.25), rgba(0,0,0,.05));
+  box-shadow: inset 0 1px 2px rgba(255,255,255,.15);
+}
+.burner-mouth {
+  position: absolute; left: 50%; top: 6px; transform: translateX(-50%);
+  width: 88px; height: 20px; border-radius: 50%;
+  background: radial-gradient(ellipse at center, #1a120c, #080604 78%);
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.85);
+  z-index: 2;
+}
+.burner-ash {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -40%);
+  width: 38px; height: 10px;
+  background:
+    radial-gradient(ellipse at 22% 40%, rgba(104,98,88,.70), transparent 55%),
+    radial-gradient(ellipse at 68% 50%, rgba(96,90,80,.60), transparent 50%),
+    radial-gradient(ellipse at 85% 35%, rgba(110,104,94,.50), transparent 45%),
+    linear-gradient(to bottom, rgba(88,82,72,.65), rgba(20,16,12,.85) 150%);
+  border-radius: 50% 46% 42% 58% / 55% 50% 38% 50%;
+  box-shadow: inset 0 -1px 2px rgba(0,0,0,.5), 1px 1px 2px rgba(0,0,0,.2);
+}
+.burner-ash::before {
+  content: ""; position: absolute; left: -3px; top: 1px; width: 8px; height: 6px;
+  background: radial-gradient(ellipse, rgba(96,90,80,.45), transparent 70%);
+  border-radius: 50%;
+  transform: rotate(-15deg);
+}
+.burner-ash::after {
+  content: ""; position: absolute; right: -2px; top: 2px; width: 6px; height: 5px;
+  background: radial-gradient(ellipse, rgba(100,94,84,.40), transparent 70%);
+  border-radius: 50%;
+  transform: rotate(10deg);
+}
+.burner-ear {
+  position: absolute; top: 14px; width: 18px; height: 18px;
+  border: 4px solid var(--burner-base);
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.18), 0 1px 2px rgba(0,0,0,.36);
+  z-index: 1;
+}
+.burner-ear::before {
+  content: ""; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: 6px; height: 6px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,.12), transparent);
+}
+.burner-ear-l { left: -2px; }
+.burner-ear-r { right: -2px; }
+.burner-legs {
+  position: absolute; left: 50%; top: 64px; transform: translateX(-50%);
+  width: 12px; height: 16px;
+  background: linear-gradient(to bottom, var(--burner-base), var(--burner-edge));
+  border-radius: 2px 2px 4px 4px;
+  box-shadow: -38px 0 0 -1px var(--burner-edge), 38px 0 0 -1px var(--burner-edge);
+}
+.burner-legs::before {
+  content: ""; position: absolute; left: 0; right: 0; top: 3px; height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.10) 30%, rgba(255,255,255,.10) 70%, transparent);
+  border-radius: 1px;
+}
+
+/* 三态适配：正常 / 分心（熄灭断烟）/ 完成（余烟散尽） */
+.incense.distracted .incense-tip,
+.incense.distracted .incense-tip::after { opacity: 0 !important; animation: none; }
+.incense.distracted .incense-wisp { opacity: 0 !important; }
+
+.incense.distracted .incense-fall span { animation: none; opacity: 0; }
+.incense.done .incense-tip,
+.incense.done .incense-tip::after { opacity: 0; animation: none; }
+.incense.done .incense-wisp { animation: wisp-fadeout 3.2s ease forwards; }
+@keyframes wisp-fadeout {
+  0% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+
+
+@media (prefers-reduced-motion: reduce) {
+
+  .incense.done .incense-wisp { animation: none; opacity: 0; }
+  .incense-tip, .incense-tip::after { animation: none; }
+  .incense-fall span { animation: none; opacity: 0; }
+  .timer-display.done { animation: none; }
+}
 /* ---------- 计时 ---------- */
 .timer {
   font-size: 64px; font-weight: 700; text-align: center;
@@ -179,11 +540,20 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ---------- 周柱状图 ---------- */
 #week-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
+.trend-line {
+  margin: 0 0 12px; font-family: var(--font-display); font-size: 15px; letter-spacing: 1px;
+}
+.day-col {
+  flex: 1; display: flex; gap: 3px; align-items: flex-end;
+  position: relative; height: 100%;
+}
+.day-col .day-bar { flex: 1; }
+.day-bar.prev { background: var(--panel2); opacity: .55; }
 .day-bar {
   flex: 1; background: var(--panel2); border-radius: 4px 4px 0 0;
   position: relative; min-height: 4px;
 }
-.day-bar .d {
+.day-col .d {
   position: absolute; bottom: -18px; left: 0; right: 0;
   text-align: center; font-size: 10px; color: var(--muted);
 }
@@ -209,6 +579,10 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 }
 .overlay-box h3 { display: flex; align-items: center; }
 
+#overlay-idle .overlay-box { text-align: center; }
+#overlay-idle .row { justify-content: center; }
+#overlay-idle .btn-ghost { margin-top: 12px; }
+
 .flow-btn {
   width: 40px; height: 40px; border-radius: 4px; border: 1px solid var(--line);
   background: var(--panel2); color: var(--text); cursor: pointer; margin-right: 6px;
@@ -226,6 +600,383 @@ button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .check { display: flex; align-items: center; gap: 8px; font-size: 15px; }
 
+
 @media (prefers-reduced-motion: reduce) {
   body { transition: none; }
 }
+
+/* ---------- 分心提醒卡片 ---------- */
+#distract-minutes { color: var(--accent); font-family: var(--font-display); font-size: 22px; }
+#overlay-distract .overlay-box { border-color: var(--accent); }
+#overlay-distract .distract-guide { margin: 4px 0 2px; text-align: center; }
+#overlay-distract .distract-guide .btn { margin-top: 8px; }
+
+/* ---------- 个人中心 ---------- */
+.profile-card { text-align: center; }
+.profile-seal {
+  width: 100%; height: 100%;
+  background: var(--accent); color: var(--on-accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 36px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.profile-card h3 { margin: 0 0 2px; }
+.divider { border: none; border-top: 1px solid var(--line); margin: 16px 0; }
+#profile-nick-input { flex: 1; min-width: 120px; }
+#view-me input[type="password"] { flex: 1; min-width: 120px; }
+#profile-stats { grid-template-columns: repeat(auto-fit, minmax(76px, 1fr)); }
+
+/* ---------- 登录/注册 ---------- */
+#view-auth { display: flex; align-items: center; justify-content: center; min-height: 60vh; }
+.auth-box { text-align: center; max-width: 340px; margin: 0 auto; padding: 28px 24px; }
+.auth-seal {
+  width: 56px; height: 56px; margin: 0 auto 10px; border-radius: 8px;
+  background: var(--accent); color: var(--on-accent);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-display); font-size: 30px; font-weight: 700;
+  box-shadow: 0 2px 8px rgba(0,0,0,.25);
+}
+.auth-box h2 { font-family: var(--font-display); font-size: 24px; margin: 4px 0; }
+.auth-tabs { display: flex; gap: 8px; justify-content: center; margin: 16px 0 12px; }
+.auth-tab {
+  padding: 8px 18px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--panel2); color: var(--muted); cursor: pointer; font-size: 14px;
+  font-family: var(--font-body);
+}
+.auth-tab.active { background: var(--accent); color: var(--on-accent); font-weight: 600; border-color: var(--accent); }
+.auth-fields { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
+.auth-fields input {
+  width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--panel2); color: var(--text); font-size: 15px;
+  font-family: var(--font-body);
+}
+.auth-fields input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.auth-fields select { width: 100%; }
+.auth-pw-row { position: relative; }
+.auth-pw-row input { padding-right: 40px; }
+.auth-forgot {
+  background: none; border: none; color: var(--muted); font-size: 13px;
+  cursor: pointer; margin: 10px auto 0; display: block; text-decoration: underline;
+}
+.auth-forgot:hover { color: var(--text); }
+#security-body select { width: 100%; }
+.auth-pw-toggle {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; font-size: 16px;
+  color: var(--muted); padding: 4px; line-height: 1;
+}
+.auth-pw-toggle:hover { color: var(--text); }
+#btn-auth-submit { width: 100%; }
+#auth-error { color: var(--accent); min-height: 18px; margin-top: 10px; }
+.auth-foot { margin-top: 14px; }
+
+/* ---------- 裸专注日 ---------- */
+.naked-banner {
+  border: 1px solid var(--accent); border-radius: 6px; padding: 10px 14px;
+  color: var(--text); background: var(--panel2); margin: 12px 0; font-size: 14px;
+}
+.naked-banner::before { content: "裸专注日 "; color: var(--accent); font-weight: 700; }
+#freedom-banner::before { content: "自由专注 "; color: var(--accent); font-weight: 700; }
+
+/* ---------- 回神仪式 ---------- */
+#overlay-ritual .overlay-box { border-color: var(--accent); text-align: center; }
+#overlay-ritual .btn { margin-top: 16px; width: 100%; }
+#ritual-reasons { display: flex; gap: 8px; justify-content: center; margin-top: 14px; }
+.ritual-reason {
+  padding: 8px 14px; border-radius: 6px; border: 1px solid var(--line);
+  background: var(--panel2); color: var(--text); cursor: pointer; font-size: 14px;
+  font-family: var(--font-body); width: auto; margin-top: 0;
+}
+.ritual-reason.selected { background: var(--accent); color: var(--on-accent); font-weight: 600; border-color: var(--accent); }
+#ritual-advice:not([hidden]) { animation: ritualFadeIn .25s ease; }
+@keyframes ritualFadeIn { from { opacity: 0; transform: translateY(2px); } to { opacity: 1; transform: none; } }
+
+/* ---------- 自评：靠产品/靠自己 ---------- */
+.reliance-btn {
+  padding: 8px 16px; border-radius: 4px; border: 1px solid var(--line);
+  background: var(--panel2); color: var(--text); cursor: pointer; margin-right: 6px;
+  font-family: var(--font-body); font-size: 15px;
+}
+.reliance-btn.selected { background: var(--accent); color: var(--on-accent); font-weight: 700; border-color: var(--accent); }
+#overlay-ritual .hint { margin: 10px 0 0; }
+
+/* ---------- 待办 ---------- */
+.todo-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.todo-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel);
+}
+.todo-item.todo-done { opacity: .68; }
+.todo-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.todo-text { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.todo-badge {
+  align-self: flex-start; font-size: 11px; line-height: 1; padding: 2px 6px;
+  border-radius: 999px; background: var(--accent); color: var(--on-accent);
+}
+.todo-streak { font-size: 12px; color: var(--muted); }
+.todo-done-mark { font-size: 12px; color: var(--accent); font-weight: 600; }
+.todo-edit { flex: 1; min-width: 0; font-size: 15px; padding: 4px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--text); }
+.todo-ops { display: flex; gap: 4px; flex-shrink: 0; }
+.todo-ops .btn.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.todo-start { flex-shrink: 0; }
+.todo-check { flex-shrink: 0; }
+.todo-group {
+  margin-top: 4px; font-size: 13px; color: var(--muted); text-align: center;
+  padding: 6px 0 2px; border-top: 1px dashed var(--line);
+}
+.btn-sm { padding: 4px 9px; font-size: 13px; border-radius: 6px; }
+/* ---------- 计时器工具 ---------- */
+.timer-chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px auto 6px; justify-content: center; }
+.chip {
+  padding: 6px 14px; border: 1px solid var(--line); border-radius: 999px;
+  background: transparent; color: var(--muted); font-size: 14px; cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.chip:hover { color: var(--text); border-color: var(--muted); }
+.chip.active { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.timer-display {
+  font-family: var(--font-display); font-size: 56px; font-weight: 700;
+  text-align: center; margin: 12px 0 4px; font-variant-numeric: tabular-nums;
+  letter-spacing: 2px;
+}
+.timer-display.done { color: var(--accent); animation: timer-pulse 1s ease-in-out infinite; }
+.timer-display.done::after { content: " 时间到"; font-size: 14px; display: block; letter-spacing: 0; }
+@keyframes timer-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
+#timer-custom { width: 110px; }
+#btn-timer-stop:disabled { opacity: .5; cursor: default; }
+
+/* ---------- 工具卡片与全屏计时页 ---------- */
+.tool-list { display: flex; flex-direction: column; gap: 8px; }
+.tool-card {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 12px 14px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel2); color: var(--text); font-size: 15px; cursor: pointer;
+  text-align: left;
+}
+.tool-card:hover { border-color: var(--muted); }
+.tool-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.tool-name { font-weight: 600; }
+.tool-desc { color: var(--muted); font-size: 13px; }
+.tool-arrow { color: var(--muted); flex-shrink: 0; }
+.tool-more { text-align: center; margin-top: 10px; }
+#view-tool-timer { min-height: calc(100vh - 40px); display: flex; flex-direction: column; }
+.tool-head { padding: 8px 0; }
+.tool-timer {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; padding-bottom: 10vh;
+}
+.tool-timer .timer-display { font-size: 84px; margin: 0; }
+.timer-settings { width: 100%; text-align: center; margin-bottom: 6px; }
+.timer-custom-row { justify-content: center; }
+
+/* ---------- 日记工具 ---------- */
+.diary {
+  max-width: 420px; margin: 0 auto; padding: 4px 0 24px;
+  display: flex; flex-direction: column; min-height: calc(100vh - 130px);
+}
+.diary-date {
+  display: flex; align-items: center; justify-content: center; gap: 14px; margin: 8px 0 14px;
+}
+.diary-date-picker {
+  font-family: var(--font-display); font-size: 20px; letter-spacing: 2px; margin: 0;
+  background: transparent; border: none; color: var(--text); cursor: pointer; padding: 4px 10px;
+  border-radius: 6px;
+}
+.diary-date-picker:hover { background: var(--panel2); }
+.diary-quick {
+  display: flex; justify-content: center; margin: -6px 0 10px;
+}
+.diary-quick .btn + .btn { margin-left: 10px; }
+.diary-nav { padding: 4px 10px; }
+#diary-input {
+  flex: 1; min-height: 45vh; resize: none; width: 100%;
+  background: var(--panel);
+  border: none;
+  padding: 8px 16px 14px 16px;
+  color: var(--text); font-size: 15px;
+  line-height: 32px;
+  text-indent: 2em;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent,
+    transparent 31px,
+    var(--line) 31px,
+    var(--line) 32px
+  );
+  background-attachment: local;
+}
+.diary-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; }
+
+/* ---------- 日记搜索 ---------- */
+.diary-search-row { justify-content: center; }
+.diary-search-row input { flex: 1; }
+.diary-search-results {
+  display: flex; flex-direction: column; gap: 8px; margin-top: 4px;
+}
+.diary-result {
+  display: flex; flex-direction: column; gap: 3px; width: 100%;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px 14px; color: var(--text); cursor: pointer; text-align: left;
+}
+.diary-result:hover { border-color: var(--muted); }
+.diary-result-date { font-size: 12px; color: var(--muted); }
+.diary-result-text { font-size: 14px; line-height: 1.6; }
+.diary-search-cancel { text-align: center; margin-top: 12px; }
+#diary-search-empty { text-align: center; margin-top: 10px; }
+
+/* ---------- 日记日历 ---------- */
+.diary-cal { max-width: 300px; }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cal-title { font-family: var(--font-display); font-size: 18px; letter-spacing: 3px; margin: 0; }
+.cal-nav { padding: 4px 10px; }
+.cal-week {
+  display: grid; grid-template-columns: repeat(7, 1fr); text-align: center;
+  font-size: 12px; color: var(--muted); margin-bottom: 4px;
+}
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-day {
+  height: 34px; border: 1px solid transparent; border-radius: 6px;
+  background: transparent; color: var(--text); font-size: 14px; cursor: pointer;
+  font-family: var(--font-display);
+}
+.cal-day.blank { visibility: hidden; }
+.cal-day:hover { background: var(--panel2); }
+.cal-day.today { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.cal-day.selected { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.cal-day.future { opacity: 0.3; cursor: not-allowed; }
+.cal-foot { display: flex; justify-content: space-between; margin-top: 12px; }
+
+/* ---------- 时间选择（静修时段） ---------- */
+.time-chip { min-width: 72px; font-family: var(--font-display); font-size: 16px; letter-spacing: 1px; }
+.time-picker { max-width: 320px; }
+.tp-title { font-family: var(--font-display); font-size: 17px; letter-spacing: 2px; }
+.tp-cols { display: flex; gap: 18px; margin: 12px 0 4px; }
+.tp-col { flex: 1; text-align: center; }
+.tp-label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 6px; }
+.tp-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 3px;
+  max-height: 190px; overflow-y: auto;
+}
+.tp-num {
+  height: 30px; border: 1px solid transparent; border-radius: 5px;
+  background: transparent; color: var(--text); font-size: 13px; cursor: pointer;
+  font-family: var(--font-display);
+}
+.tp-num:hover { background: var(--panel2); }
+.tp-num.selected { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.tp-foot { justify-content: space-between; }
+
+/* ---------- 修行手册 ---------- */
+.manual { max-width: 420px; margin: 0 auto; padding: 4px 0 24px; }
+.manual-title {
+  text-align: center; font-family: var(--font-display);
+  font-size: 26px; letter-spacing: 8px; margin: 10px 0 2px;
+}
+.manual-sub { text-align: center; margin-bottom: 18px; }
+.manual-item {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; padding: 14px 16px; margin-bottom: 12px;
+}
+.manual-item h3 {
+  margin: 0 0 6px; font-family: var(--font-display); font-size: 17px;
+}
+.manual-no { color: var(--accent); margin-right: 6px; }
+.manual-item p { margin: 0 0 4px; font-size: 15px; line-height: 1.65; }
+.manual-item .hint { margin: 0; font-size: 13px; }
+#btn-manual-done { width: 100%; margin-top: 6px; }
+
+/* ---------- 复盘 ---------- */
+.reflect-chips { display: flex; gap: 6px; flex-wrap: wrap; margin: 4px 0 8px; }
+.reflect-chips .chip { padding: 4px 12px; font-size: 13px; }
+#review-reflect, #reflect-input { width: 100%; }
+#reflection-list { display: flex; flex-direction: column; gap: 8px; }
+.reflection-item { font-size: 14px; line-height: 1.6; }
+.reflection-item .reflection-head {
+  display: flex; gap: 8px; align-items: baseline;
+  font-size: 12px; color: var(--muted); margin-bottom: 2px;
+}
+.reflection-item .reflection-badge {
+  color: var(--accent); font-size: 12px; font-weight: 600;
+}
+.reflect-group { margin-bottom: 10px; }
+.reflect-group-head {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 6px;
+  padding: 8px 12px; font-size: 14px; color: var(--text); cursor: pointer;
+}
+.reflect-group-head::after {
+  content: "▾"; color: var(--muted); transition: transform .15s;
+}
+.reflect-group-head.collapsed::after { transform: rotate(-90deg); }
+.reflect-count { color: var(--muted); font-size: 12px; }
+.reflect-group-body { padding: 8px 4px 0; }
+
+/* ---------- 头像上传 ---------- */
+.avatar-wrap {
+  width: 88px; height: 88px; margin: 0 auto 10px; padding: 0;
+  border-radius: 50%; border: 2px solid var(--line); background: transparent;
+  cursor: pointer; position: relative; display: block; overflow: hidden;
+}
+.avatar-wrap:hover { border-color: var(--muted); }
+.avatar-wrap::after {
+  content: "换"; position: absolute; left: 0; right: 0; bottom: 0; padding: 3px 0;
+  font-size: 12px; color: #fff; background: rgba(0,0,0,.45); opacity: 0; transition: opacity .15s;
+}
+.avatar-wrap:hover::after { opacity: 1; }
+.avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; display: block; }
+.crop-stage {
+  width: 260px; height: 260px; margin: 10px auto;
+  border-radius: 50%; overflow: hidden; cursor: move;
+  background: repeating-conic-gradient(#2a2a33 0% 25%, #1d1d28 0% 50%) 0 0 / 26px 26px;
+  border: 2px solid var(--line);
+}
+.crop-stage canvas { display: block; width: 260px; height: 260px; touch-action: none; }
+
+/* ---------- 黑名单列表 ---------- */
+.blacklist-list { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.blacklist-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px;
+  background: var(--panel);
+}
+.blacklist-key { flex: 1; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ---------- 毕业仪式 ---------- */
+#overlay-graduation .overlay-box { border-color: var(--accent); text-align: center; }
+#overlay-graduation .btn { margin-top: 18px; width: 100%; }
+.grad-scroll {
+  width: 160px; height: 34px; margin: 0 auto 14px; position: relative;
+}
+.grad-scroll span {
+  position: absolute; left: 50%; top: 50%; width: 0; height: 26px;
+  transform: translate(-50%, -50%);
+  background: linear-gradient(90deg, #f5e6c8, #d9b98a, #f5e6c8);
+  border-radius: 3px;
+}
+#overlay-graduation:not([hidden]) .grad-scroll span { animation: scrollOpen .8s ease forwards; }
+@keyframes scrollOpen {
+  from { width: 0; }
+  to { width: 160px; }
+}
+.grad-title { justify-content: center; }
+.grad-blessing { margin: 12px 0 0; color: var(--text); font-size: 15px; line-height: 1.7; }
+#overlay-graduation .hint { margin: 10px 0 0; }
+
+
+@media (prefers-reduced-motion: reduce) {
+  #overlay-graduation .grad-scroll span { animation: none; }
+  .grad-scroll span { width: 160px; }
+}
+/* ---------- 待办分区折叠 ---------- */
+.todo-head { display: flex; align-items: center; justify-content: space-between; margin: 0 0 10px; }
+.todo-head h3 { margin: 0; }
+.todo-collapse {
+  background: none; border: 1px solid var(--line); border-radius: 4px;
+  color: var(--muted); cursor: pointer; width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; padding: 0;
+  transition: transform .2s ease;
+}
+.todo-collapse:hover { color: var(--text); border-color: var(--muted); }
+.todo-collapse.collapsed { transform: rotate(-90deg); }

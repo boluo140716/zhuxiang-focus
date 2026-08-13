@@ -1,0 +1,8 @@
+name = "zuanxiang-sync"
+main = "src/index.js"
+compatibility_date = "2026-08-11"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "zuanxiang-sync"
+database_id = "bacb7ead-1b27-4d12-b3e1-d02f00b91093"

@@ -16,3 +16,9 @@ def test_no_match():
 
 def test_empty_inputs_safe():
     assert match("", "", ["抖音"]) is None
+
+def test_default_blacklist_empty(client):
+    """默认黑名单为空（不再预置抖音）。"""
+    data = client.get("/api/settings").json()
+    assert data["blacklist"] == []
+

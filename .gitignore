@@ -10,3 +10,6 @@ server*.log
 .e2e_artifacts/
 .e2e_test.db
 codex_chat/
+cloudflare/.wrangler/
+cloudflare/dev.log
+cloudflare/dev.err.log

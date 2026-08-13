@@ -18,7 +18,7 @@ R1 设计令牌与样式重写（style.css）→ R2 页面结构（index.html + 
   - `#brandbar`：flex 品牌行，左 `.brand-seal`（28px 朱砂方印 + 白"香"字）+ 品牌名（衬线 18px），右 `#btn-theme`
   - 导航按钮：active 态用朱砂底；圆角 10→6px
   - `.cards`/`.card`：圆角 14→8px；数字用 `--font-display`
-  - 新增 `.seal`（大印，56px）、`.seal-sm`（集印条小印，28px）、`.seal.done`（实心朱砂）、`.seal.empty`（朱砂描边透明）；`.week-seals` 7 枚横排，下方 `.seal-dow` 标注"一~日"
+  - 新增 `.seal`（大印，56px）、`.seal-sm`（集印条小印，28px）、`.seal.done`（实心朱砂）、`.seal.empty`（朱砂描边透明）；`.week-seals` 7 枚横排，下方 `.seal-dow` 标注"今"（实印=今天那枚，其余空心）
   - `.btn-primary`：朱砂底；`.btn-ghost`：透明 + `--line` 描边；删除 `.btn-danger` 的亮红（放弃改 ghost，避免抢注意力）
   - `.timer`：`--font-display` + 64px + tabular-nums
   - `#week-chart`：`.day-bar.filled` 用朱砂，达标日加 `--gold` 顶边（可选）或保持朱砂

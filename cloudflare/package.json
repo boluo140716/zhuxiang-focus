@@ -1,0 +1,10 @@
+{
+  "name": "zuanxiang-sync",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node test_worker.mjs",
+    "dev": "wrangler dev --local",
+    "deploy": "wrangler deploy"
+  }
+}

@@ -1,7 +1,7 @@
-/* 一炷香 Service Worker：静态资源离线缓存 */
-const CACHE = "yizhuxiang-v6";
+/* 篆香 Service Worker：静态资源离线缓存 */
+const CACHE = "yizhuxiang-v80";
 const ASSETS = [
-  "/", "/index.html", "/app.js?v=6", "/style.css?v=6",
+  "/", "/index.html", "/app.js?v=80", "/style.css?v=80",
   "/manifest.webmanifest", "/icons/icon-192.png", "/icons/icon-512.png",
 ];
 

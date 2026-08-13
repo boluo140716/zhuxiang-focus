@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- 香炉底座阴影 -->
+  <ellipse cx="32" cy="54" rx="18" ry="3" fill="rgba(0,0,0,0.15)"/>
+  <!-- 香炉三足 -->
+  <rect x="22" y="48" width="4" height="7" rx="1" fill="#6b5a48"/>
+  <rect x="30" y="48" width="4" height="7" rx="1" fill="#6b5a48"/>
+  <rect x="38" y="48" width="4" height="7" rx="1" fill="#6b5a48"/>
+  <!-- 香炉主体 -->
+  <ellipse cx="32" cy="44" rx="16" ry="10" fill="url(#burner-grad)"/>
+  <!-- 香炉口沿 -->
+  <ellipse cx="32" cy="34" rx="17" ry="5" fill="#8a7560"/>
+  <ellipse cx="32" cy="34" rx="14" ry="3.5" fill="#2a2018"/>
+  <!-- 香炉双耳 -->
+  <path d="M15 34 Q10 34 10 38 Q10 42 15 42" fill="none" stroke="#8a7560" stroke-width="2.5" stroke-linecap="round"/>
+  <path d="M49 34 Q54 34 54 38 Q54 42 49 42" fill="none" stroke="#8a7560" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 香 -->
+  <rect x="31" y="6" width="2" height="28" rx="1" fill="url(#incense-grad)"/>
+  <!-- 香头暗火 -->
+  <circle cx="32" cy="6" r="2.5" fill="#c84820" opacity="0.85"/>
+  <circle cx="32" cy="6" r="4" fill="#c84820" opacity="0.2"/>
+  <!-- 一缕烟 -->
+  <path d="M32 4 Q30 1 32 -2 Q34 -5 32 -8" fill="none" stroke="rgba(180,170,155,0.35)" stroke-width="1.5" stroke-linecap="round"/>
+  <defs>
+    <radialGradient id="burner-grad" cx="45%" cy="35%">
+      <stop offset="0%" stop-color="#a08868"/>
+      <stop offset="60%" stop-color="#7a6550"/>
+      <stop offset="100%" stop-color="#5a4a38"/>
+    </radialGradient>
+    <linearGradient id="incense-grad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4a3220"/>
+      <stop offset="100%" stop-color="#57402a"/>
+    </linearGradient>
+  </defs>
+</svg>

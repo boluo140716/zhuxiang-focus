@@ -3,30 +3,74 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>一炷香 专注训练营</title>
+<title>篆香</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <meta name="theme-color" content="#14141c">
-<!-- 缓存版本 v6：升级时需同步修改本文件两处 ?v=、sw.js 的 CACHE/ASSETS、README 的逃生地址 -->
-<link rel="stylesheet" href="style.css?v=6">
+<!-- 缓存版本 v80：升级时需同步修改本文件两处 ?v=、sw.js 的 CACHE/ASSETS、README 的逃生地址 -->
+<link rel="stylesheet" href="style.css?v=80">
 </head>
 <body>
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><filter id="bronze"><feTurbulence type="fractalNoise" baseFrequency="0.55" numOctaves="2" stitchTiles="stitch" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0.32 0 0 0 0 0.28 0 0 0 0 0.24 0 0 0 0.5 0" result="c"/><feComposite operator="in" in="c" in2="SourceGraphic" result="t"/><feBlend mode="multiply" in="t" in2="SourceGraphic"/></filter><filter id="wood" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency="1.4 0.7" numOctaves="3" seed="7" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 0.12  0 0 0 0 0.08  0 0 0 0 0.06  0 0 0 0.32 0"/><feComposite operator="over" in2="SourceGraphic"/></filter></svg>
 <div id="app">
   <div id="brandbar">
     <div class="brand-left">
       <div class="brand-seal" aria-hidden="true">香</div>
-      <span class="brand-name">一炷香</span>
+      <span class="brand-name">篆香</span>
     </div>
     <button id="btn-theme" type="button">昼</button>
   </div>
 
   <nav id="nav">
     <button class="nav-btn active" data-view="home">专注</button>
+    <button class="nav-btn" data-view="todo">待办</button>
     <button class="nav-btn" data-view="stats">统计</button>
     <button class="nav-btn" data-view="settings">设置</button>
+    <button class="nav-btn" data-view="me">我的</button>
   </nav>
 
   <main>
+    <!-- 登录/注册 -->
+    <section id="view-auth" hidden>
+      <div class="auth-box panel">
+        <div class="auth-seal" aria-hidden="true">香</div>
+        <h2 id="auth-title">入定</h2>
+        <p class="hint" id="auth-subtitle">登录后开始今天的专注</p>
+        <div class="auth-tabs">
+          <button class="auth-tab active" data-mode="login">登录</button>
+          <button class="auth-tab" data-mode="register">注册</button>
+        </div>
+        <div class="auth-fields">
+          <input id="auth-username" type="text" placeholder="用户名" autocomplete="username" maxlength="50">
+          <input id="auth-nickname" type="text" placeholder="昵称（展示用）" autocomplete="nickname" maxlength="50" hidden>
+          <div class="auth-pw-row">
+            <input id="auth-password" type="password" placeholder="密码" autocomplete="current-password">
+            <button class="auth-pw-toggle" type="button" data-target="auth-password" aria-label="显示密码">👁</button>
+          </div>
+          <div class="auth-pw-row" hidden id="auth-pw2-row">
+            <input id="auth-password2" type="password" placeholder="确认密码" autocomplete="new-password">
+            <button class="auth-pw-toggle" type="button" data-target="auth-password2" aria-label="显示密码"></button>
+          </div>
+          <div id="auth-security-row" hidden>
+            <select id="auth-question">
+              <option value="">安全问题（可选）</option>
+              <option value="你最喜欢的城市是？">你最喜欢的城市是？</option>
+              <option value="你的宠物叫什么名字？">你的宠物叫什么名字？</option>
+              <option value="你小学的校名是？">你小学的校名是？</option>
+              <option value="你母亲的姓氏是？">你母亲的姓氏是？</option>
+              <option value="你最喜欢的一本书是？">你最喜欢的一本书是？</option>
+            </select>
+            <input id="auth-answer" type="text" placeholder="答案（可选，用于忘记密码）" maxlength="50">
+          </div>
+        </div>
+        <button class="btn btn-primary" id="btn-auth-submit">进入</button>
+        <p class="tiny" id="auth-error"></p>
+        <button class="auth-forgot" id="btn-auth-forgot" type="button">忘记密码？</button>
+        <p class="hint auth-foot">专注如修行，日日盖一印。</p>
+      </div>
+    </section>
+
     <!-- 主页 -->
     <section id="view-home">
       <div id="home-idle">
@@ -41,16 +85,15 @@
           <div class="card"><div class="num" id="streak-num">0</div><div class="label">连续达标天</div></div>
         </div>
         <div id="week-seals" class="week-seals" aria-label="本周集印"></div>
-        <div id="rebound-area" hidden>
-          <p class="hint">今天还没达标，来个 5 分钟回弹任务，不让连续断掉。</p>
-          <button class="btn btn-ghost" id="btn-rebound">开始回弹（5 分钟）</button>
-        </div>
+        <div id="naked-banner" class="naked-banner" hidden>产品不检测、不提醒，全靠你自己。分心了请手动点「分心」。</div>
+        <div id="freedom-banner" class="naked-banner" hidden>产品只记录，不干预，全靠你自己。</div>
         <div id="startup-box" class="panel">
           <h3>这次要完成什么？</h3>
           <input id="task-input" type="text" placeholder="例如：写周报 / 读 20 页书" maxlength="100">
           <div class="row">
             <label>时长 <span id="minutes-label">15</span> 分钟</label>
             <input id="minutes-slider" type="range" min="5" max="60" step="5" value="15">
+            <input id="minutes-input" type="number" min="1" max="180" value="15" aria-label="自定义时长（分钟）">
           </div>
           <button class="btn btn-primary" id="btn-start">开始专注</button>
         </div>
@@ -59,31 +102,127 @@
       <div id="home-running" hidden>
         <div class="panel running-panel">
           <div class="task-name" id="running-task"></div>
-          <div class="timer" id="timer">00:00</div>
+          <div class="incense" id="incense" role="img" aria-label="篆香计时">
+            <svg class="incense-wisp" id="incense-smoke" viewBox="0 0 60 160" aria-hidden="true">
+              <defs>
+                <linearGradient id="wispFade" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0" stop-color="var(--smoke-a)" stop-opacity=".16"/>
+                  <stop offset=".5" stop-color="var(--smoke-a)" stop-opacity=".14"/>
+                  <stop offset=".8" stop-color="var(--smoke-a)" stop-opacity=".08"/>
+                  <stop offset="1" stop-color="var(--smoke-a)" stop-opacity="0"/>
+                </linearGradient>
+                <linearGradient id="wispFade2" x1="0" y1="1" x2="0" y2="0">
+                  <stop offset="0" stop-color="var(--smoke-a)" stop-opacity=".12"/>
+                  <stop offset=".5" stop-color="var(--smoke-a)" stop-opacity=".10"/>
+                  <stop offset=".8" stop-color="var(--smoke-a)" stop-opacity=".06"/>
+                  <stop offset="1" stop-color="var(--smoke-a)" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M26 136 C 16 126, 34 114, 24 102 C 16 92, 36 82, 28 70 C 22 60, 32 50, 26 38 C 22 28, 30 18, 26 6" stroke="url(#wispFade)" stroke-width="2" fill="none" stroke-linecap="round"/>
+              <path d="M34 136 C 44 124, 26 112, 36 100 C 44 90, 28 80, 36 68 C 42 58, 30 46, 36 34 C 40 24, 32 14, 34 4" stroke="url(#wispFade2)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </svg>
+
+            <div class="incense-stick">
+              <div class="incense-burn" id="incense-burn">
+                <div class="incense-heat" id="incense-heat"></div>
+                <div class="incense-ash" id="incense-ash"></div>
+              </div>
+              <div class="incense-tip" id="incense-tip"></div>
+              <div class="incense-fall" id="incense-fall">
+                <span></span><span></span><span></span><span></span>
+                <span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="incense-burner" id="incense-burner" aria-hidden="true">
+              <div class="burner-body">
+                <span class="string-line"></span>
+                <div class="hui-pattern">
+                  <span class="hui-unit"></span><span class="hui-unit"></span><span class="hui-unit"></span>
+                  <span class="hui-unit"></span><span class="hui-unit"></span><span class="hui-unit"></span>
+                  <span class="hui-unit"></span><span class="hui-unit"></span><span class="hui-unit"></span>
+                </div>
+                <div class="boss-pattern">
+                  <span class="boss"></span><span class="boss"></span><span class="boss"></span>
+                  <span class="boss"></span><span class="boss"></span><span class="boss"></span>
+                  <span class="boss"></span><span class="boss"></span>
+                </div>
+                <span class="cloud-pattern"></span>
+                <span class="cloud-pattern cloud-r"></span>
+              </div>
+              <div class="burner-rim"></div>
+              <div class="burner-mouth"><span class="burner-ash"></span></div>
+              <span class="burner-ear burner-ear-l"></span>
+              <span class="burner-ear burner-ear-r"></span>
+              <div class="burner-legs"></div>
+            </div>
+          </div>
+          <p class="incense-time" id="incense-time">已燃 0 分钟</p>
+          <p class="hint incense-done" id="incense-done" hidden>篆香已尽，这一场可以收束了。</p>
           <div class="row">
-            <button class="btn btn-ghost" id="btn-distract">破功了</button>
+            <button class="btn btn-ghost" id="btn-distract">分心</button>
             <button class="btn btn-ghost" id="btn-abandon">放弃</button>
             <button class="btn btn-primary" id="btn-complete">完成</button>
           </div>
-          <p class="hint" id="running-hint">放下手机，专注于当前任务。</p>
-          <p class="tiny" id="offline-badge" hidden>离线中：数据已暂存，联网后自动同步</p>
+          <p class="hint" id="running-hint" hidden>专注于当前任务。</p>
+          <p class="tiny" id="offline-badge" hidden>同步失败：数据已暂存，将自动重试</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 待办 -->
+    <section id="view-todo" hidden>
+      <div class="panel">
+        <label>专注时长 <span id="todo-minutes-label">15</span> 分钟</label>
+        <input id="todo-minutes-slider" type="range" min="5" max="60" step="5" value="15">
+        <input id="todo-minutes-input" type="number" min="1" max="180" value="15" aria-label="自定义专注时长（分钟）">
+      </div>
+      <div class="panel">
+        <div class="todo-head">
+          <h3>每日任务</h3>
+          <button type="button" class="todo-collapse collapsed" data-target="todo-daily-body" aria-label="折叠或展开每日任务">▾</button>
+        </div>
+        <div id="todo-daily-body" hidden>
+          <div class="row">
+            <input id="todo-daily-input" type="text" placeholder="每天想坚持的事" maxlength="100">
+            <button class="btn btn-primary" id="btn-todo-daily-add" type="button">添加</button>
+          </div>
+          <div id="todo-daily-list" class="todo-list"></div>
+          <p class="hint" id="todo-daily-empty">还没有每日任务，先加一件想每天坚持的事。</p>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="todo-head">
+          <h3>普通待办</h3>
+          <button type="button" class="todo-collapse collapsed" data-target="todo-normal-body" aria-label="折叠或展开普通待办">▾</button>
+        </div>
+        <div id="todo-normal-body" hidden>
+          <div class="row">
+            <input id="todo-input" type="text" placeholder="接下来想专心的一次性事项" maxlength="100">
+            <button class="btn btn-primary" id="btn-todo-add" type="button">添加</button>
+          </div>
+          <div id="todo-list" class="todo-list"></div>
+          <p class="hint" id="todo-empty">还没有普通待办，先列一件想专心的事。</p>
         </div>
       </div>
     </section>
 
     <!-- 统计 -->
     <section id="view-stats" hidden>
-      <div id="week-chart" class="panel"></div>
+      <div class="panel">
+        <p class="trend-line" id="week-trend"></p>
+        <div id="week-chart"></div>
+      </div>
       <div class="cards">
         <div class="card"><div class="num" id="week-rate">0%</div><div class="label">本周达标率</div></div>
         <div class="card"><div class="num" id="week-streak">0</div><div class="label">连续达标天</div></div>
-        <div class="card"><div class="num" id="next-target">—</div><div class="label">下周建议分钟</div></div>
+        <div class="card"><div class="num" id="suggest-target">—</div><div class="label">今天建议专注</div></div>
+        <div class="card"><div class="num" id="self-rate">—</div><div class="label">靠自己完成</div></div>
       </div>
       <div class="panel" id="scroll-panel">
         <h3>结业卷轴</h3>
-        <p id="scroll-text">连续达标 0 天 · 距毕业约 4 周</p>
+        <p id="scroll-text">近 4 周达标 0% · 靠自己 —</p>
         <div class="scroll-track"><div id="scroll-fill" class="scroll-fill"></div></div>
-        <p class="hint">连续 4 周达标，即可毕业脱离产品。</p>
+        <p class="hint">近 4 周达标率 ≥ 60% 且 靠自己 ≥ 50%，即可毕业脱离产品。</p>
       </div>
       <div class="panel">
         <h3>洞察</h3>
@@ -91,7 +230,6 @@
         <p class="tiny" id="insight-detail"></p>
       </div>
       <div class="row">
-        <button class="btn btn-ghost" id="btn-apply-target">应用建议时长</button>
         <button class="btn btn-ghost" id="btn-refresh-stats">刷新</button>
       </div>
     </section>
@@ -99,30 +237,300 @@
     <!-- 设置 -->
     <section id="view-settings" hidden>
       <div class="panel">
-        <h3>分心黑名单</h3>
-        <p class="hint">每行一个关键词，匹配电脑前台窗口的标题或进程名。默认：抖音</p>
-        <textarea id="blacklist-input" rows="6"></textarea>
-      </div>
-      <div class="panel">
-        <h3>目标时长</h3>
+        <h3>外缘</h3>
+        <p class="hint">列出容易让你分心的应用进程，遇到即记一次分心。</p>
         <div class="row">
-          <label>每次专注目标 <span id="target-label">15</span> 分钟</label>
-          <input id="target-slider" type="range" min="5" max="60" step="5" value="15">
+          <input id="blacklist-input" type="text" placeholder="例如：抖音" maxlength="50">
+          <button class="btn btn-ghost" id="btn-blacklist-add" type="button">添加</button>
         </div>
+        <div id="blacklist-list" class="blacklist-list"></div>
+        <p class="tiny" id="blacklist-empty">还没有外缘关键词。</p>
       </div>
       <div class="panel">
-        <h3>深度时段</h3>
+        <h3>训练阶段</h3>
+        <p class="hint" id="ritual-stage-label">受训期</p>
+      </div>
+      <div class="panel">
+        <h3>裸专注日</h3>
         <div class="row">
-          <input id="deep-start" type="time" value="09:00">
+          <label for="naked-day">每周</label>
+          <select id="naked-day">
+            <option value="0">不启用</option>
+            <option value="1">周一</option>
+            <option value="2">周二</option>
+            <option value="3">周三</option>
+            <option value="4">周四</option>
+            <option value="5">周五</option>
+            <option value="6">周六</option>
+            <option value="7">周日</option>
+          </select>
+          <span>设为裸专注日</span>
+        </div>
+        <p class="hint">不检测、不提醒、不归因。只留计时，练习靠自己。</p>
+      </div>
+      <div class="panel">
+        <h3>静修时段</h3>
+        <div class="row">
+          <button class="btn btn-ghost time-chip" id="deep-start-btn" type="button">09:00</button>
           <span>至</span>
-          <input id="deep-end" type="time" value="11:00">
+          <button class="btn btn-ghost time-chip" id="deep-end-btn" type="button">11:00</button>
+          <input id="deep-start" type="hidden" value="09:00">
+          <input id="deep-end" type="hidden" value="11:00">
         </div>
-        <p class="hint">到点打开页面时会提醒你开始（MVP 不做系统推送）。</p>
+        <p class="hint">到点打开页面时会提醒你开始。</p>
       </div>
       <div class="panel">
-        <label class="check"><input id="reminder-enabled" type="checkbox"> 开启深度时段提醒</label>
+        <label class="check"><input id="reminder-enabled" type="checkbox"> 开启静修时段提醒</label>
+      </div>
+      <div class="panel">
+        <h3>到点提醒</h3>
+        <label class="check"><input id="reminder-sound" type="checkbox" checked> 香尽时播放提示音</label>
+        <label class="check"><input id="reminder-notify" type="checkbox"> 香尽时发送系统通知</label>
+        <label class="check"><input id="reminder-notify-distract" type="checkbox"> 分心时发送系统通知</label>
+      </div>
+      <div class="panel">
+        <h3>数据</h3>
+        <div class="row">
+          <button class="btn btn-ghost" id="btn-export-data" type="button">导出数据</button>
+          <button class="btn btn-ghost" id="btn-import-data" type="button">导入数据</button>
+          <input id="import-file" type="file" accept=".json,application/json" hidden>
+        </div>
+        <p class="hint">导出为 JSON 备份文件，可在另一台设备导入，实现数据搬家。</p>
+      </div>
+      <div class="panel">
+        <h3>云同步</h3>
+        <div id="sync-unbound">
+          <p class="hint">把数据同步到云端，换设备登录同一账号即可延续。</p>
+          <input id="sync-url" type="text" value="https://zuanxiang-sync.zuanxiang-focus.workers.dev" placeholder="云端地址">
+          <input id="sync-username" type="text" placeholder="云端账号">
+          <input id="sync-password" type="password" placeholder="云端密码">
+          <div class="row">
+            <button class="btn btn-primary" id="btn-sync-bind" type="button">登录并启用同步</button>
+          </div>
+        </div>
+        <div id="sync-bound" hidden>
+          <p class="hint">已绑定云端账号：<span id="sync-username-label"></span></p>
+          <p class="hint" id="sync-status-text"></p>
+          <div class="row">
+            <button class="btn btn-primary" id="btn-sync-now" type="button">立即同步</button>
+            <button class="btn btn-ghost" id="btn-sync-unbind" type="button">解绑</button>
+          </div>
+        </div>
       </div>
       <button class="btn btn-primary" id="btn-save-settings">保存设置</button>
+    </section>
+
+    <!-- 我的 -->
+    <section id="view-me" hidden>
+      <div class="panel profile-card">
+        <button class="avatar-wrap" id="avatar-btn" type="button" aria-label="上传头像">
+          <span class="profile-seal" id="profile-seal" aria-hidden="true">香</span>
+          <img class="avatar-img" id="avatar-img" alt="头像" hidden>
+        </button>
+        <input id="avatar-file" type="file" accept="image/*" hidden>
+        <h3 id="profile-nickname"></h3>
+        <p class="hint" id="profile-username"></p>
+        <p class="tiny" id="profile-joined"></p>
+      </div>
+      <div class="cards" id="profile-stats">
+        <div class="card"><div class="num" id="pf-focus">0</div><div class="label">累计专注分钟</div></div>
+        <div class="card"><div class="num" id="pf-completed">0</div><div class="label">完成场次</div></div>
+        <div class="card"><div class="num" id="pf-distractions">0</div><div class="label">累计分心</div></div>
+        <div class="card"><div class="num" id="pf-qualified">0</div><div class="label">累计达标天</div></div>
+        <div class="card"><div class="num" id="pf-selfrate">—</div><div class="label">靠自己完成</div></div>
+      </div>
+      <div class="row">
+        <button class="btn btn-ghost" id="btn-toggle-account" type="button">账号管理</button>
+        <button class="btn btn-ghost" id="btn-toggle-tools" type="button">工具</button>
+        <button class="btn btn-ghost" id="btn-toggle-manual" type="button">修行手册</button>
+        <button class="btn btn-ghost" id="btn-toggle-reflect" type="button">复盘</button>
+      </div>
+      <div class="panel" id="reflect-panel" hidden>
+        <h3>复盘</h3>
+        <p class="hint" id="reflect-summary" hidden></p>
+        <p class="hint" id="reflect-empty">还没写过复盘。专注结束时有分心或放弃，可以写下原因。</p>
+        <div id="reflect-groups"></div>
+      </div>
+      <div class="panel" id="tools-panel" hidden>
+        <h3>工具</h3>
+        <div class="tool-list">
+          <button class="tool-card" id="tool-card-timer" type="button">
+            <span class="tool-text"><span class="tool-name">计时器</span><span class="tool-desc">设定时长，进入全屏倒计时</span></span>
+            <span class="tool-arrow">→</span>
+          </button>
+          <button class="tool-card" id="tool-card-diary" type="button">
+            <span class="tool-text"><span class="tool-name">日记</span><span class="tool-desc">每天写几句，回看自己</span></span>
+            <span class="tool-arrow">→</span>
+          </button>
+        </div>
+        <p class="tiny tool-more">更多工具，敬请期待。</p>
+      </div>
+      <div class="panel" id="account-panel" hidden>
+        <h3>账号管理</h3>
+        <div class="row">
+          <label for="profile-nick-input">昵称</label>
+          <input id="profile-nick-input" type="text" maxlength="50">
+          <button class="btn btn-ghost" id="btn-save-nick">保存</button>
+        </div>
+        <hr class="divider">
+        <div class="row" style="justify-content: space-between; gap: 8px;">
+          <button class="btn btn-ghost" id="btn-toggle-pw" type="button">修改密码</button>
+          <button class="btn btn-ghost" id="btn-toggle-security" type="button">安全问题设置</button>
+          <button class="btn btn-ghost" id="btn-logout" type="button">退出登录</button>
+        </div>
+        <div id="pw-change-body" hidden>
+          <div class="row"><label for="pw-old">旧密码</label><input id="pw-old" type="password" autocomplete="current-password"></div>
+          <div class="row"><label for="pw-new">新密码</label><input id="pw-new" type="password" autocomplete="new-password"></div>
+          <div class="row"><label for="pw-new2">确认新密码</label><input id="pw-new2" type="password" autocomplete="new-password"></div>
+          <button class="btn btn-ghost" id="btn-change-pw">确认修改</button>
+        </div>
+        <div id="security-body" hidden>
+          <select id="security-question">
+            <option value="">选择安全问题</option>
+            <option value="你最喜欢的城市是？">你最喜欢的城市是？</option>
+            <option value="你的宠物叫什么名字？">你的宠物叫什么名字？</option>
+            <option value="你小学的校名是？">你小学的校名是？</option>
+            <option value="你母亲的姓氏是？">你母亲的姓氏是？</option>
+            <option value="你最喜欢的一本书是？">你最喜欢的一本书是？</option>
+            <option value="你第一次旅行的目的地是？">你第一次旅行的目的地是？</option>
+            <option value="你最喜欢的电影是？">你最喜欢的电影是？</option>
+            <option value="你童年最难忘的一件事是？">你童年最难忘的一件事是？</option>
+            <option value="你最喜欢的季节是？">你最喜欢的季节是？</option>
+            <option value="你梦想中的职业是？">你梦想中的职业是？</option>
+            <option value="你最喜欢的食物是？">你最喜欢的食物是？</option>
+            <option value="你听过最感动的一首歌是？">你听过最感动的一首歌是？</option>
+          </select>
+          <div class="row"><input id="security-answer" type="text" placeholder="答案" maxlength="100"></div>
+          <button class="btn btn-ghost" id="btn-save-security">保存</button>
+        </div>
+        <p class="tiny" id="profile-msg"></p>
+      </div>
+      <div class="panel" id="graduation-panel" hidden>
+        <h3>毕业档案</h3>
+        <p class="hint" id="grad-archive"></p>
+        <button class="btn btn-ghost" id="btn-retrain" type="button" hidden>重新训练</button>
+      </div>
+    </section>
+
+    <!-- 工具：计时器全屏页 -->
+    <section id="view-tool-timer" hidden>
+      <div class="tool-head">
+        <button class="btn btn-ghost" id="btn-timer-back" type="button">← 返回</button>
+      </div>
+      <div class="tool-timer">
+        <div class="timer-settings" id="timer-settings">
+          <label>倒计时时长 <span id="timer-minutes-label">15</span> 分钟</label>
+          <div class="timer-chips" id="timer-chips">
+            <button class="chip" data-min="5" type="button">5</button>
+            <button class="chip" data-min="10" type="button">10</button>
+            <button class="chip active" data-min="15" type="button">15</button>
+            <button class="chip" data-min="25" type="button">25</button>
+            <button class="chip" data-min="30" type="button">30</button>
+          </div>
+          <div class="row timer-custom-row">
+            <input id="timer-custom" type="number" min="1" max="120" placeholder="自定义">
+          </div>
+        </div>
+        <div class="timer-display" id="timer-display" aria-live="polite">15:00</div>
+        <div class="row">
+          <button class="btn btn-primary" id="btn-timer-start" type="button">开始</button>
+          <button class="btn btn-ghost" id="btn-timer-reset" type="button">重置</button>
+          <button class="btn btn-ghost" id="btn-timer-stop" type="button" disabled>停止</button>
+        </div>
+        <label class="check"><input id="timer-sound" type="checkbox" checked> 到点提示音</label>
+        <p class="hint" id="timer-status"></p>
+      </div>
+    </section>
+
+    <!-- 工具：日记 -->
+    <section id="view-tool-diary" hidden>
+      <div class="tool-head">
+        <button class="btn btn-ghost" id="btn-diary-back" type="button">← 返回</button>
+      </div>
+      <div class="diary">
+        <div class="diary-date" id="diary-date">
+          <button class="btn btn-ghost diary-nav" id="btn-diary-prev" type="button">◀</button>
+          <button class="diary-date-picker" id="diary-date-label" type="button"></button>
+          <button class="btn btn-ghost diary-nav" id="btn-diary-next" type="button">▶</button>
+        </div>
+        <div class="diary-quick" id="diary-quick">
+          <button class="btn btn-ghost btn-sm" id="btn-diary-today" type="button">今天</button>
+          <button class="btn btn-ghost btn-sm" id="btn-diary-search" type="button">搜索</button>
+        </div>
+        <div class="diary-search" id="diary-search" hidden>
+          <div class="row diary-search-row">
+            <input id="diary-search-input" type="text" placeholder="搜日记内容，多词用空格分隔" maxlength="100">
+            <button class="btn btn-primary" id="btn-diary-search-go" type="button">搜索</button>
+          </div>
+          <div class="diary-search-results" id="diary-search-results"></div>
+          <p class="hint" id="diary-search-empty" hidden></p>
+          <div class="diary-search-cancel">
+            <button class="btn btn-ghost btn-sm" id="btn-diary-search-cancel" type="button">取消</button>
+          </div>
+        </div>
+        <textarea id="diary-input" placeholder="今天过得怎么样？写几句。" spellcheck="false"></textarea>
+        <div class="diary-foot" id="diary-foot">
+          <span class="tiny" id="diary-saved"></span>
+          <button class="btn btn-primary" id="btn-diary-save" type="button">保存</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 修行手册 -->
+    <section id="view-manual" hidden>
+      <div class="tool-head">
+        <button class="btn btn-ghost" id="btn-manual-back" type="button">← 返回</button>
+      </div>
+      <div class="manual">
+        <h2 class="manual-title">修行手册</h2>
+        <p class="hint manual-sub">专注如修行，日日盖一印。</p>
+        <div class="manual-item">
+          <h3><span class="manual-no">一</span>燃香</h3>
+          <p>开始一场专注，就是点燃一炷香。</p>
+          <p class="hint">写下目标、设定时长，香燃尽即到点。中途分心可点「分心」，完成时做一次简短自评。</p>
+        </div>
+        <div class="manual-item">
+          <h3><span class="manual-no">二</span>达标与印章</h3>
+          <p>每天达标，才盖一枚实印。</p>
+          <p class="hint">当天完成专注 ≥15 分钟、完成率 ≥60%、平均完成度 ≥60，即算达标；达标后今天的「香」字印为实印。</p>
+        </div>
+        <div class="manual-item">
+          <h3><span class="manual-no">三</span>回神仪式</h3>
+          <p>分心不可怕，回来就好。</p>
+          <p class="hint">破功后回来，选一个原因（有点累、有点烦、就是走神了）。受训期有反馈建议，训练阶段越高，打扰越少。</p>
+        </div>
+        <div class="manual-item">
+          <h3><span class="manual-no">四</span>外缘</h3>
+          <p>把你容易陷进去的应用进程写下来。</p>
+          <p class="hint">在「设置 → 外缘」添加应用名（如抖音、微博），专注时遇到即记一次分心。</p>
+        </div>
+        <div class="manual-item">
+          <h3><span class="manual-no">五</span>静修时段</h3>
+          <p>给每天留一段固定的专注时辰。</p>
+          <p class="hint">设定起止时间，到点打开页面会提醒你开始（即原「深度时段」）。</p>
+        </div>
+        <div class="manual-item">
+          <h3><span class="manual-no">六</span>裸专注日</h3>
+          <p>每周一天，完全靠自己。</p>
+          <p class="hint">当天产品不检测、不提醒，只留计时与手动「分心」，练习脱离产品也能专注。</p>
+        </div>
+        <div class="manual-item">
+          <h3><span class="manual-no">七</span>训练阶段</h3>
+          <p>干预随你的表现逐步退场。</p>
+          <p class="hint">受训期 → 过渡期 → 预备毕业：检测、补问、仪式逐步减少，直到不再需要。</p>
+        </div>
+        <div class="manual-item">
+          <h3><span class="manual-no">八</span>连续达标</h3>
+          <p>休息不算断，用了没达标才算断。</p>
+          <p class="hint">没使用产品的日子直接跳过；有专注记录但没达标的天，才会中断连续达标。</p>
+        </div>
+        <div class="manual-item">
+          <h3><span class="manual-no">九</span>毕业</h3>
+          <p>近 4 周达标率 ≥60%，且过半场次靠自己，即可毕业。</p>
+          <p class="hint">两个条件同时满足，结业卷轴展开——从此脱离产品，也能专注。</p>
+        </div>
+        <button class="btn btn-primary" id="btn-manual-done" type="button">我明白了</button>
+      </div>
     </section>
   </main>
 </div>
@@ -147,8 +555,8 @@
   <div class="overlay-box">
     <h3><span class="box-seal">评</span>这场专注怎么样？</h3>
     <div class="row">
-      <label>完成度 <span id="completion-label">50</span>%</label>
-      <input id="completion-slider" type="range" min="0" max="100" step="10" value="50">
+      <label>完成度 <span id="completion-label">60</span>%</label>
+      <input id="completion-slider" type="range" min="0" max="100" step="10" value="60">
     </div>
     <div class="row">
       <label>心流状态</label>
@@ -156,7 +564,43 @@
         <button class="flow-btn" data-v="1">1</button><button class="flow-btn" data-v="2">2</button><button class="flow-btn" data-v="3">3</button><button class="flow-btn" data-v="4">4</button><button class="flow-btn" data-v="5">5</button>
       </div>
     </div>
+    <div class="row">
+      <label>这场靠产品还是靠自己？</label>
+      <div id="reliance-picker">
+        <button class="reliance-btn" data-v="product">靠产品</button>
+        <button class="reliance-btn selected" data-v="self">靠自己</button>
+      </div>
+    </div>
+    <div class="row" id="review-reflect-row" hidden>
+      <label>这一场为什么分心？（可选）</label>
+      <div class="reflect-chips">
+        <button class="chip" data-text="有点累" type="button">有点累</button>
+        <button class="chip" data-text="有点烦" type="button">有点烦</button>
+        <button class="chip" data-text="被打断" type="button">被打断</button>
+        <button class="chip" data-text="就是想刷会儿" type="button">就是想刷会儿</button>
+      </div>
+      <input id="review-reflect" type="text" placeholder="写下具体原因：" maxlength="100">
+    </div>
     <button class="btn btn-primary" id="btn-submit-review">提交</button>
+  </div>
+</div>
+
+<!-- 放弃复盘 -->
+<div id="overlay-reflect" class="overlay" hidden>
+  <div class="overlay-box">
+    <h3><span class="box-seal">省</span>为什么放弃这场？</h3>
+    <p class="hint">写一句就好，不写也行。</p>
+    <div class="reflect-chips">
+      <button class="chip" data-text="临时有事" type="button">临时有事</button>
+      <button class="chip" data-text="太难了" type="button">太难了</button>
+      <button class="chip" data-text="静不下心" type="button">静不下心</button>
+      <button class="chip" data-text="被打扰" type="button">被打扰</button>
+    </div>
+    <input id="reflect-input" type="text" placeholder="写下具体原因（可选）" maxlength="100">
+    <div class="row">
+      <button class="btn btn-primary" id="btn-reflect-save" type="button">保存</button>
+      <button class="btn btn-ghost" id="btn-reflect-skip" type="button">不用了</button>
+    </div>
   </div>
 </div>
 
@@ -189,7 +633,138 @@
   </div>
 </div>
 
+<!-- 分心提醒（电脑端） -->
+<div id="overlay-distract" class="overlay" hidden>
+  <div class="overlay-box">
+    <h3><span class="box-seal">醒</span>你已分心 <span id="distract-minutes">不到 1</span> 分钟</h3>
+    <p class="hint" id="distract-app">正在使用：分心应用</p>
+    <p class="hint">回来吧，这场专注还没结束。</p>
+    <div class="row">
+      <button class="btn btn-primary" id="btn-distract-back">回来专注</button>
+      <button class="btn btn-ghost" id="btn-distract-quit">结束这场专注</button>
+    </div>
+    <div id="distract-notify-guide" class="distract-guide" hidden>
+      <p class="hint">分心超过 12 秒，可以发一条系统通知提醒你回来</p>
+      <button class="btn btn-ghost" id="btn-distract-notify-on">开启系统通知</button>
+    </div>
+  </div>
+</div>
+
+<!-- 回神仪式 -->
+<div id="overlay-ritual" class="overlay" hidden>
+  <div class="overlay-box">
+    <h3><span class="box-seal">回</span>分心很正常，回来就好</h3>
+    <p class="hint" id="ritual-count" hidden>这是今天第 0 次回来，每一次都是练习</p>
+    <div class="ritual-reasons" id="ritual-reasons" hidden>
+      <button type="button" class="btn ritual-reason" data-reason="tired">有点累</button>
+      <button type="button" class="btn ritual-reason" data-reason="annoyed">有点烦</button>
+      <button type="button" class="btn ritual-reason" data-reason="zoned">就是走神了</button>
+    </div>
+    <p class="hint" id="ritual-advice" hidden></p>
+    <button class="btn btn-primary" id="btn-ritual-done">我回来了，继续</button>
+  </div>
+</div>
+
+<!-- 毕业仪式 -->
+<div id="overlay-graduation" class="overlay" hidden>
+  <div class="overlay-box grad-box">
+    <div class="grad-scroll" aria-hidden="true"><span></span></div>
+    <h3 class="grad-title"><span class="box-seal">毕</span>你毕业了</h3>
+    <p class="hint" id="grad-date"></p>
+    <p class="grad-blessing">从入门到自在，你已经可以脱离产品，也能专注。</p>
+    <button class="btn btn-primary" id="btn-grad-claim">领取毕业</button>
+  </div>
+</div>
+
+<!-- 头像上传裁剪 -->
+<div id="overlay-avatar" class="overlay" hidden>
+  <div class="overlay-box">
+    <h3>调整头像</h3>
+    <div class="crop-stage" id="crop-stage">
+      <canvas id="crop-canvas" width="260" height="260"></canvas>
+    </div>
+    <label>缩放 <span id="crop-zoom-label">1.0</span>倍
+      <input id="crop-zoom" type="range" min="1" max="3" step="0.01" value="1">
+    </label>
+    <div class="row">
+      <button class="btn btn-primary" id="btn-crop-ok" type="button">确定</button>
+      <button class="btn btn-ghost" id="btn-crop-cancel" type="button">取消</button>
+    </div>
+    <p class="hint">拖动图片调整位置，圆形区域即最终头像。</p>
+  </div>
+</div>
+
+<!-- 确认浮层 -->
+<div id="overlay-confirm" class="overlay" hidden>
+  <div class="overlay-box">
+    <h3><span class="box-seal" id="confirm-seal">删</span><span id="confirm-title">确认删除</span></h3>
+    <p class="hint" id="confirm-message">确定要删除吗？</p>
+    <div class="row">
+      <button class="btn btn-ghost" id="btn-confirm-cancel">取消</button>
+      <button class="btn btn-primary" id="btn-confirm-ok">删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- 日记日历 -->
+<div id="overlay-diary-cal" class="overlay" hidden>
+  <div class="overlay-box diary-cal">
+    <div class="cal-head">
+      <button class="btn btn-ghost cal-nav" id="btn-cal-prev" type="button">◀</button>
+      <h3 class="cal-title" id="cal-title"></h3>
+      <button class="btn btn-ghost cal-nav" id="btn-cal-next" type="button">▶</button>
+    </div>
+    <div class="cal-week">
+      <span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-foot">
+      <button class="btn btn-ghost" id="btn-cal-today" type="button">今天</button>
+      <button class="btn btn-primary" id="btn-cal-close" type="button">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 时间选择 -->
+<div id="overlay-time-picker" class="overlay" hidden>
+  <div class="overlay-box time-picker">
+    <h3 class="tp-title" id="tp-title">静修时段 · 开始</h3>
+    <div class="tp-cols">
+      <div class="tp-col">
+        <span class="tp-label">时</span>
+        <div class="tp-grid" id="tp-hours"></div>
+      </div>
+      <div class="tp-col">
+        <span class="tp-label">分</span>
+        <div class="tp-grid" id="tp-minutes"></div>
+      </div>
+    </div>
+    <div class="row tp-foot">
+      <button class="btn btn-ghost" id="btn-tp-cancel" type="button">取消</button>
+      <button class="btn btn-primary" id="btn-tp-ok" type="button">确定</button>
+    </div>
+  </div>
+</div>
+
+<!-- 忘记密码 -->
+<div id="overlay-reset" class="overlay" hidden>
+  <div class="overlay-box">
+    <h3><span class="box-seal">忘</span>重置密码</h3>
+    <div class="row"><input id="reset-username" type="text" placeholder="用户名" maxlength="50" autocomplete="username"></div>
+    <button class="btn btn-ghost" id="btn-reset-next" type="button">下一步</button>
+    <p class="hint" id="reset-question" hidden></p>
+    <div class="row"><input id="reset-answer" type="text" placeholder="安全问题答案" maxlength="50" hidden></div>
+    <div class="row"><input id="reset-pw" type="password" placeholder="新密码（至少 6 位）" maxlength="50" hidden></div>
+    <div class="row"><input id="reset-pw2" type="password" placeholder="确认新密码" maxlength="50" hidden></div>
+    <div class="row" id="reset-actions">
+      <button class="btn btn-primary" id="btn-reset-ok" type="button" hidden>重置密码</button>
+      <button class="btn btn-ghost" id="btn-reset-cancel" type="button">取消</button>
+    </div>
+    <p class="tiny" id="reset-msg"></p>
+  </div>
+</div>
+
 <div id="toast" hidden></div>
-<script src="app.js?v=6"></script>
+<script src="app.js?v=80"></script>
 </body>
 </html>
