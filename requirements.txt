@@ -3,4 +3,5 @@ uvicorn[standard]
 sqlmodel
 httpx
 pytest
+pytest-xdist
 winotify

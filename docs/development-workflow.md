@@ -30,6 +30,20 @@ python scripts/bump_version.py --dry-run  # 先预演
 
 ## 质量兜底（不因提速而砍）
 
-- 改完代码必做 code-review + ponytail-review + 对抗式自查四行
+- 改完代码必做对抗式自查四行（我可能错在哪 / 改动最小 / 验证真实运行 / 安全）
 - 所有改动运行真实验证（pytest 单测 / jsdom / headless Chrome）
 - 危险操作（删除、批量移动、改数据库）仍先征求同意
+
+## 审查分级（2026-08-13）
+
+- **小改动**（纯文案/样式、单点修复，<50 行）：自查四行 + `ponytail-review`，跳过完整 `code-review`
+- **中等改动**（新增/修改逻辑，50–200 行）：自查 + `ponytail-review` + `code-review` 双轴
+- **大改动 / 阶段交付**（跨层、>200 行、涉及数据/同步/账号）：自查 + 双轴 `code-review` + 全量三套测试
+- 纯文档改动只自查，不跑 review
+- 审查固定点默认 = 上一个提交（`git diff HEAD`，含新增未跟踪文件）
+
+## 后端测试并行（需本机验证）
+
+```bash
+python -m pytest -q -n 4   # pytest-xdist 已安装；沙箱内因句柄限制无法运行，请在本机确认
+```
