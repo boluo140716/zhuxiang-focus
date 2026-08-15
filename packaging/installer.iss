@@ -1,5 +1,5 @@
-﻿; 篆香 专注训练营 安装脚本（Inno Setup 6）
-#define MyAppName "篆香 专注训练营"
+﻿; 篆香 安装脚本（Inno Setup 6）
+#define MyAppName "篆香"
 #define MyAppVersion "1.0.0"
 #define MyAppExeName "FocusProject.exe"
 #define MyAppId "{{2A3F7E51-8B4C-4D2E-9F61-0C5A7B3E9D21}"
