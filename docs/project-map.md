@@ -54,7 +54,7 @@ python -m PyInstaller packaging/FocusProject.spec --noconfirm --distpath packagi
 - 云端同步必须用 D1 `batch` 批量写入：逐条写入几百条记录会拖到 70s+ 触发客户端超时（客户端超时已放宽至 120s）
 - windowed（无控制台）EXE 下 uvicorn 默认日志写无效 stderr 会卡死启动：`run.py` 在 EXE 模式传 `log_config=None`，勿删
 - EXE 数据目录在 `%LOCALAPPDATA%\FocusProject`（`sys.frozen` 检测）；卸载不删数据
-- EXE 桌面形态用 pywebview（系统 WebView2），不弹浏览器；关窗即杀后端（`run.py` 的 `_run_desktop`）
+- EXE 桌面形态用 pywebview（系统 WebView2）+ pystray 托盘：不弹浏览器；关窗最小化到托盘，托盘"退出"才结束进程（`run.py` 的 `_run_desktop`）
 - 系统时区为 UTC：同步游标统一 UTC ISO（`app/services/sync.py` 的 `_utc_iso`）
 - 中文经 PowerShell 管道传 Python 易乱码：用 UTF-8 文件或 `python -c`，别用内联中文 stdin
 - pytest-xdist 在沙箱内无法运行（句柄限制），需本机验证

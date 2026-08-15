@@ -6,3 +6,5 @@ pytest
 pytest-xdist
 winotify
 pywebview
+pystray
+Pillow

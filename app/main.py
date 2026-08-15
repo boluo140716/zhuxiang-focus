@@ -20,7 +20,7 @@ init_db()
 
 MONITOR_ALIVE_TTL = 20  # 超过该秒数无轮询视为监控线程失活（单轮 tick 最坏约 12s，留余量）
 
-app = FastAPI(title="篆香 专注训练营")
+app = FastAPI(title="篆香")
 app.include_router(auth.router)
 app.include_router(sessions.router)
 app.include_router(distractions.router)

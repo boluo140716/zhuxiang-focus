@@ -8,8 +8,8 @@ datas = [(ROOT + r"\static", "static")]
 binaries = []
 hiddenimports = []
 
-# uvicorn / winotify / winsdk / webview：动态导入与数据文件收集
-for pkg in ("uvicorn", "winotify", "winsdk", "webview"):
+# uvicorn / winotify / winsdk / webview / pystray：动态导入与数据文件收集
+for pkg in ("uvicorn", "winotify", "winsdk", "webview", "pystray"):
     d, b, h = collect_all(pkg)
     datas += d
     binaries += b

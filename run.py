@@ -48,8 +48,9 @@ def _wait_port(port: int, timeout: float = 25.0) -> None:
 
 
 def _run_desktop(port: int) -> None:
-    """EXE 模式：uvicorn 跑后台线程，主线程跑 pywebview 桌面窗口，关窗退出。"""
+    """EXE 模式：uvicorn 跑后台线程，pywebview 桌面窗口 + 系统托盘。"""
     import webview
+    from app.tray import create_tray
 
     def serve():
         # windowed 下 stderr 无效，uvicorn 默认日志会卡启动，故 log_config=None
@@ -59,15 +60,33 @@ def _run_desktop(port: int) -> None:
     _wait_port(port)
     _log("后端就绪，打开桌面窗口")
     window = webview.create_window(
-        "篆香 专注训练营",
+        "篆香",
         f"http://127.0.0.1:{port}",
         width=1280,
         height=860,
         min_size=(1024, 700),
     )
+
+    # 托盘：关窗后隐藏窗口，托盘接管；"退出"才真正退出
+    tray = create_tray(
+        on_open=lambda: window.show(),
+        on_exit=lambda: (window.destroy(), os._exit(0)),
+    )
+    tray_started = False
+
+    def on_closing():
+        """窗口关闭回调：隐藏窗口 + 启动托盘。"""
+        nonlocal tray_started
+        window.hide()
+        if not tray_started:
+            tray_started = True
+            threading.Thread(target=tray.run, daemon=True).start()
+        return False  # 阻止默认关闭行为
+
+    window.events.closing += on_closing
     webview.start()
     _log("窗口已关闭，退出进程")
-    os._exit(0)  # 关窗杀后端
+    os._exit(0)
 
 
 def _run_dev(port: int) -> None:

@@ -20,7 +20,7 @@
 | 安装器 | Inno Setup 6 | 免费、脚本化、卸载干净；需下载安装（winget） |
 | 数据目录 | `%LOCALAPPDATA%\FocusProject` | 安装目录受 Program Files 写保护，数据必须外迁 |
 | 端口 | 启动时绑定空闲端口（socket bind 0） | 避免 8000 被占 |
-| 桌面形态 | pywebview 原生窗口（系统 WebView2），关窗杀后端 | 不弹浏览器、真桌面应用；页面"退出应用"按钮保留兜底 |
+| 桌面形态 | pywebview 原生窗口（系统 WebView2）+ pystray 系统托盘 | 不弹浏览器、真桌面应用；关窗最小化到托盘，托盘"退出"才结束进程 |
 | 图标 | static/icons/icon-512.png → icon.ico（Pillow） | 复用现有印章图标 |
 | 依赖收集 | uvicorn / winotify(winsdk) 走 hidden-imports/collect | 这两个是 PyInstaller 打包的已知坑 |
 
@@ -37,7 +37,8 @@
 8. ✅ 安装 Inno Setup 6.7.3（winget），写 installer.iss（中文界面 + 桌面快捷方式 + 卸载）
 9. ✅ 构建安装包 `packaging/installer/FocusProject-Setup-1.0.0.exe`（35MB）
    - 全流程验收：静默安装 → 启动（随机端口/health/首页）→ 退出 → 静默卸载 → 数据目录保留
-10. ✅ 桌面形态升级：pywebview 窗口（标题"篆香 专注训练营"），关窗杀后端实测生效；安装包重建并全流程复验
+10. ✅ 桌面形态升级：pywebview 窗口（标题"篆香"），关窗杀后端实测生效；安装包重建并全流程复验
+11. ✅ 系统托盘（pystray）：关窗隐藏到托盘（只启动一次托盘线程），托盘"打开窗口"/"退出"；新图标（icon.ico 用户更换）
 
 ## 风险与已知坑
 
