@@ -1764,7 +1764,7 @@ function localOrSetting(backendKey, lsKey, fallback) {
 function themeFromSettings() {
   const ls = localStorage.getItem(FD_THEME_KEY);
   if (ls === "light" || ls === "dark") return ls;
-  return (state.settings && state.settings.theme) || "dark";
+  return (state.settings && state.settings.theme) || "light";
 }
 
 function saveSettingPartial(patch) {
@@ -1922,7 +1922,7 @@ function parseTime(t) {
 function currentTheme() {
   if (document.documentElement.dataset.theme) return document.documentElement.dataset.theme;
   if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) return "light";
-  return "dark";
+  return "light";
 }
 function initTheme() {
   document.documentElement.dataset.theme = themeFromSettings();
