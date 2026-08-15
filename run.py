@@ -91,7 +91,7 @@ def _run_desktop(port: int) -> None:
         width=1280,
         height=860,
         min_size=(1024, 700),
-        fullscreen=True,
+        maximized=True,
     )
 
     # 托盘：关窗后隐藏窗口，托盘接管；"退出"才真正退出
