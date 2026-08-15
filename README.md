@@ -11,6 +11,16 @@
 - 成长体系：受训期 → 过渡期 → 预备毕业，连续达标 28 天毕业
 - 多端云同步：本地 SQLite 为真源，Cloudflare 增量同步，断网可用
 - 桌面应用：系统托盘、桌面窗口、Windows 通知
+<img width="110" height="110" alt="image" src="https://github.com/user-attachments/assets/c22b19e5-f0ec-4b83-a7c1-2aedb2937274" />
+<img width="110" height="110" alt="image" src="https://github.com/user-attachments/assets/b0677d66-f3f1-4cf2-85df-22e6ef85e7d3" />
+<img width="110" height="110" alt="image" src="https://github.com/user-attachments/assets/9076b17a-42f5-4741-ad4c-e02ae58eb048" />
+<img width="110" height="110" alt="image" src="https://github.com/user-attachments/assets/e7396e53-fb8c-41ed-b9ff-4da0cc740bf5" />
+<img width="110" height="110" alt="image" src="https://github.com/user-attachments/assets/4d16a110-7f2f-4efc-b49b-fa0497033ecb" />
+<img width="110" height="110" alt="image" src="https://github.com/user-attachments/assets/6c44503b-7d8c-408c-93fd-53cd21b322ea" />
+<img width="110" height="110" alt="image" src="https://github.com/user-attachments/assets/84fccbe1-cf2b-4bc4-9a45-f2de036110ed" />
+
+
+
 
 ## 安装使用
 
