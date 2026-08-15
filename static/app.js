@@ -1863,10 +1863,10 @@ async function loadSyncStatus() {
 }
 
 async function bindSync() {
-  const url = $("sync-url").value.trim();
+  const url = "https://zuanxiang-sync.zuanxiang-focus.workers.dev";
   const username = $("sync-username").value.trim();
   const password = $("sync-password").value;
-  if (!url || !username || !password) { toast("请填写云端地址、账号和密码"); return; }
+  if (!username || !password) { toast("请填写云端账号和密码"); return; }
   try {
     const res = await apiDirect("/api/sync/bind", "POST", { url, username, password });
     toast(res && res.sync && res.sync.synced ? "云同步已启用，数据已同步" : "已绑定，但本轮同步未完成");

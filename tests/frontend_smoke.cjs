@@ -558,7 +558,7 @@ console.log("== T12 未命中不弹卡 ==");
     check("数据区导出按钮存在", !!doc.getElementById("btn-export-data"));
     check("数据区导入按钮存在", !!doc.getElementById("btn-import-data"));
     check("云同步绑定按钮存在", !!doc.getElementById("btn-sync-bind"));
-    check("云同步地址输入框存在", !!doc.getElementById("sync-url"));
+    check("云同步地址显示框存在", !!doc.querySelector(".sync-url-display"));
     check("云同步未绑定视图默认显示", !doc.getElementById("sync-unbound").hidden);
     check("云同步已绑定视图默认隐藏", doc.getElementById("sync-bound").hidden);
     doc.getElementById("reminder-notify").click();

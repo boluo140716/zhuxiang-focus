@@ -176,6 +176,19 @@ h3 { font-size: 16px; margin-bottom: 8px; font-family: var(--font-display); }
 
 /* ---------- 表单 ---------- */
 .row { display: flex; align-items: center; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
+.sync-url-display {
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: 13px;
+  margin-bottom: 8px;
+  word-break: break-all;
+}
+#sync-unbound input {
+  margin-bottom: 8px;
+}
 input[type="text"], input[type="time"], input[type="password"], input[type="number"], textarea, select {
   width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--line);
   background: var(--panel2); color: var(--text); font-size: 15px;
