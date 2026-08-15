@@ -47,7 +47,9 @@ python scripts/bump_version.py                   # 版本号 +1（同步 5 处�
 ## 已知坑
 
 - PowerShell 禁用 `.ps1`：npm/npx/wrangler 用 `.cmd` 版（`npx.cmd`、`wrangler.cmd`）
-- `*.workers.dev` 国内直连超时，需科学上网（本地同步引擎失败不阻塞使用）
+- `*.workers.dev` 国内直连不通：后端走本机 Clash 代理（默认 `127.0.0.1:7897`，环境变量 `SYNC_PROXY` 覆盖），本地同步失败不阻塞使用
+- 云端 Worker 受免费层 CPU 限制（10ms/请求）：PBKDF2 迭代已降到 1 万次（本地 auth.py 仍 20 万，两端哈希独立存储、互不验证）
+- 云端同步必须用 D1 `batch` 批量写入：逐条写入几百条记录会拖到 70s+ 触发客户端超时（客户端超时已放宽至 120s）
 - 系统时区为 UTC：同步游标统一 UTC ISO（`app/services/sync.py` 的 `_utc_iso`）
 - 中文经 PowerShell 管道传 Python 易乱码：用 UTF-8 文件或 `python -c`，别用内联中文 stdin
 - pytest-xdist 在沙箱内无法运行（句柄限制），需本机验证
