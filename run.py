@@ -84,7 +84,11 @@ def _run_desktop(port: int) -> None:
         return False  # 阻止默认关闭行为
 
     window.events.closing += on_closing
-    webview.start()
+    # private_mode=False + storage_path：WebView2 用户数据（localStorage/token）持久化，
+    # 否则每次启动用随机临时目录 → 登录态丢失
+    _storage = str(Path(os.environ.get("LOCALAPPDATA", ".")) / "FocusProject" / "webview2")
+    _log(f"WebView2 数据目录: {_storage}")
+    webview.start(private_mode=False, storage_path=_storage)
     _log("窗口已关闭，退出进程")
     os._exit(0)
 
