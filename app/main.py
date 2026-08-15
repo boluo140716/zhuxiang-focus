@@ -46,7 +46,7 @@ def system_shutdown(request: Request):
         raise HTTPException(403, "仅允许本机调用")
 
     def _die():
-        time.sleep(0.3)  # 先让响应返回
+        time.sleep(1.0)  # 先让响应返回，并给 WebView2 留刷盘时间
         os._exit(0)
 
     threading.Thread(target=_die, daemon=True).start()

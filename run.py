@@ -30,9 +30,18 @@ def _log(msg: str) -> None:
 
 
 def _find_free_port() -> int:
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
+    """固定端口：localStorage 按 origin(host+port) 隔离，端口必须稳定登录态才持久。
+    默认 17890，被占用时递增寻找下一个空闲端口。"""
+    base = 17890
+    for offset in range(100):
+        port = base + offset
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("127.0.0.1", port))
+                return port
+            except OSError:
+                continue
+    return 0  # 极端情况回退随机端口
 
 
 def _wait_port(port: int, timeout: float = 25.0) -> None:
@@ -82,12 +91,13 @@ def _run_desktop(port: int) -> None:
         width=1280,
         height=860,
         min_size=(1024, 700),
+        fullscreen=True,
     )
 
     # 托盘：关窗后隐藏窗口，托盘接管；"退出"才真正退出
     tray = create_tray(
         on_open=lambda: window.show(),
-        on_exit=lambda: (window.destroy(), os._exit(0)),
+        on_exit=lambda: (window.destroy(), time.sleep(1.0), os._exit(0)),  # 留 1s 给 WebView2 刷盘
     )
     tray_started = False
 
