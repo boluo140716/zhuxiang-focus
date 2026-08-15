@@ -42,6 +42,7 @@ const state = {
 };
 
 function isTouch() {
+  if (window.chrome && window.chrome.webview) return false;  // 篆香 EXE 的 WebView2 壳：触摸屏也算桌面端
   return "ontouchstart" in window && navigator.maxTouchPoints > 0;
 }
 
