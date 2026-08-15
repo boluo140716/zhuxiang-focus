@@ -126,6 +126,7 @@ async function flushQueue() {
           completion_score: item.completion_score,
           flow_score: item.flow_score,
           reliance: item.reliance,
+          reflection: item.reflection,
           actual_minutes: item.actual_minutes,
         });
       } else {
@@ -270,9 +271,7 @@ function setAuthMode(mode) {
   const reg = mode === "register";
   $("auth-nickname").hidden = !reg;
   $("auth-pw2-row").hidden = !reg;
-  $("auth-security-row").hidden = true; // 注册页不显示安全问题，需要时在账号管理设置
   $("btn-auth-forgot").hidden = reg;
-  if (!reg) { $("auth-question").value = ""; $("auth-answer").value = ""; }
   $("auth-title").textContent = reg ? "开卷" : "入定";
   $("auth-subtitle").textContent = reg ? "注册后开始你的专注修行" : "登录后开始今天的专注";
   $("btn-auth-submit").textContent = reg ? "注册并进入" : "进入";
@@ -289,14 +288,10 @@ async function submitAuth() {
   if (mode === "register") {
     const nickname = $("auth-nickname").value.trim();
     const password2 = $("auth-password2").value;
-    const question = $("auth-question").value;
-    const answer = $("auth-answer").value.trim();
     if (password.length < 6) { $("auth-error").textContent = "密码至少 6 位"; return; }
     if (password !== password2) { $("auth-error").textContent = "两次密码不一致"; return; }
-    if (question && !answer) { $("auth-error").textContent = "选了安全问题，答案也要填"; return; }
     url = "/api/auth/register";
     payload = { username, nickname, password };
-    if (question && answer) { payload.security_question = question; payload.security_answer = answer; }
   } else {
     url = "/api/auth/login";
     payload = { username, password };
@@ -794,10 +789,7 @@ function updateTimerMinutesLabel() {
 }
 
 function openTimerTool() {
-  document.querySelectorAll("section[id^='view-']").forEach((el) => { el.hidden = true; });
-  $("nav").hidden = true;
-  $("brandbar").hidden = true;
-  $("view-tool-timer").hidden = false;
+  showView("view-tool-timer");
   // 进入先选时长，点「开始」才计时
   timerState.minutes = Math.min(120, Math.max(1, timerState.minutes || 15));
   timerState.remainingMs = 0;
@@ -824,10 +816,7 @@ function diaryDateKey(d) {
 }
 
 function openDiaryTool() {
-  document.querySelectorAll("section[id^='view-']").forEach((el) => { el.hidden = true; });
-  $("nav").hidden = true;
-  $("brandbar").hidden = true;
-  $("view-tool-diary").hidden = false;
+  showView("view-tool-diary");
   diaryState.date = new Date(); // 默认今天
   loadDiary();
 }
@@ -1061,10 +1050,14 @@ async function doDiarySearch() {
 
 /* ---------- 修行手册 ---------- */
 function openManual() {
+  showView("view-manual");
+}
+
+function showView(id) {
   document.querySelectorAll("section[id^='view-']").forEach((el) => { el.hidden = true; });
   $("nav").hidden = true;
   $("brandbar").hidden = true;
-  $("view-manual").hidden = false;
+  $(id).hidden = false;
 }
 
 function closeManual() {
@@ -1920,9 +1913,7 @@ function parseTime(t) {
 
 /* ---------- 昼夜主题 ---------- */
 function currentTheme() {
-  if (document.documentElement.dataset.theme) return document.documentElement.dataset.theme;
-  if (window.matchMedia && window.matchMedia("(prefers-color-scheme: light)").matches) return "light";
-  return "light";
+  return document.documentElement.dataset.theme || "light";
 }
 function initTheme() {
   document.documentElement.dataset.theme = themeFromSettings();

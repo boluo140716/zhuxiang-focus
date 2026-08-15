@@ -32,10 +32,7 @@ def settle_stage(stage: int, distractions, today: date) -> int:
     if _day_has_cluster(by_day.get(today, [])):
         return STAGE_L1
     first_day = min(by_day)
-    last_cluster = None
-    for day, ds in by_day.items():
-        if _day_has_cluster(ds):
-            last_cluster = day if last_cluster is None else max(last_cluster, day)
+    last_cluster = max((day for day, ds in by_day.items() if _day_has_cluster(ds)), default=None)
     # 从未连续破功 -> 从首次有记录那天起算观察期，避免新用户过早降档
     anchor = last_cluster if last_cluster is not None else first_day
     last_distraction = max(by_day)

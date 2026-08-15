@@ -914,7 +914,7 @@ console.log("== T18f 毕业档案：已毕业渲染 + 重新训练 ==");
     const doc = window.document;
     doc.querySelector('.auth-tab[data-mode="register"]').click();
     await sleep(40);
-    check("注册页不显示安全问题", doc.getElementById("auth-security-row").hidden);
+    check("注册页不显示安全问题", !doc.getElementById("auth-security-row"));
     doc.getElementById("auth-username").value = "alice";
     doc.getElementById("auth-nickname").value = "爱丽丝";
     doc.getElementById("auth-password").value = "secret1";

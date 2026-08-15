@@ -5,34 +5,9 @@ from datetime import date, timedelta
 MIN_QUALIFY_MINUTES = 15  # 达标下限：当天完成时长至少 15 分钟（防止一分钟打卡刷达标）
 
 
-def _day_stats(sessions, day: date):
-    """当天统计：(完成时长, 总投入时长=完成+放弃实际, 完成度列表, 是否有心流>=3)。"""
-    done_min = 0
-    invest_min = 0
-    scores = []
-    flow_ok = False
-    for s in sessions:
-        if s.started_at.date() != day:
-            continue
-        if s.status == "completed":
-            done_min += s.actual_minutes
-            invest_min += s.actual_minutes
-            if s.completion_score is not None:
-                scores.append(s.completion_score)
-            if s.flow_score is not None and s.flow_score >= 3:
-                flow_ok = True
-        elif s.status == "abandoned":
-            invest_min += s.actual_minutes
-    return done_min, invest_min, scores, flow_ok
-
-
 def is_qualified_day(sessions, day: date) -> bool:
-    """达标日：完成时长 >= 总投入*60%（完成率>=60%）且 >= 15 分钟，平均完成度 >= 60，且至少一场心流 >= 3。"""
-    done_min, invest_min, scores, flow_ok = _day_stats(sessions, day)
-    if not scores or invest_min <= 0:
-        return False
-    avg = sum(scores) / len(scores)
-    return flow_ok and avg >= 60 and done_min >= MIN_QUALIFY_MINUTES and done_min >= invest_min * 0.6
+    """达标日：与 qualified_days 同一套规则（完成率/时长/完成度/心流）。"""
+    return day in qualified_days(sessions)
 
 
 def qualified_days(sessions) -> set:
@@ -94,6 +69,12 @@ def week_completion_rate(qualified: set, today: date) -> float:
     days = {today - timedelta(days=i) for i in range(7)}
     hit = len(days & qualified)
     return hit / 7
+
+
+def next_daily_streak(last_checkin: str | None, streak: int, today: str) -> int:
+    """每日待办连续打卡：昨天打过则 +1，否则从 1 重新开始。"""
+    yesterday = (date.fromisoformat(today) - timedelta(days=1)).isoformat()
+    return streak + 1 if last_checkin == yesterday else 1
 
 
 

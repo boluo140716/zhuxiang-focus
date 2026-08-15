@@ -84,6 +84,7 @@ def _run_desktop(port: int) -> None:
 
     threading.Thread(target=serve, daemon=True).start()
     _wait_port(port)
+    start_monitor(f"http://127.0.0.1:{port}")  # EXE 版必须启监控，否则分心检测不工作
     _log("后端就绪，打开桌面窗口")
     window = webview.create_window(
         "篆香",
@@ -124,7 +125,7 @@ def _run_dev(port: int) -> None:
     """开发模式：命令行日志 + 自动开浏览器。"""
     if os.environ.get("FOCUS_NO_BROWSER") != "1":
         threading.Timer(1.2, lambda: webbrowser.open(f"http://127.0.0.1:{port}")).start()
-    start_monitor()
+    start_monitor(f"http://127.0.0.1:{port}")
     uvicorn.run(app, host="0.0.0.0", port=port, log_config=uvicorn.config.LOGGING_CONFIG)
 
 

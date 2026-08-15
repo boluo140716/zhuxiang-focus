@@ -20,8 +20,7 @@ const TOKEN_TTL = 7 * 24 * 3600;
 
 /* ---------- 工具 ---------- */
 export function b64url(bytes) {
-  let s = "";
-  for (const b of bytes) s += String.fromCharCode(b);
+  const s = String.fromCharCode(...bytes);
   return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 

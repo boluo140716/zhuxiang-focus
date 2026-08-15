@@ -1,15 +1,16 @@
 """专注会话 API：开始 / 结束（设计 5.4）。"""
-import json
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session as DBSession, select
 
 from app.db import get_session
 from app.deps import get_current_user
-from app.models import Distraction, FocusSession, Setting, Todo, User
+from app.models import Distraction, FocusSession, Todo, User
 from app.schemas import SessionCreate, SessionUpdate
+from app.services.settings import current_stage
 from app.services.stage import STAGE_TO_SESSION
+from app.services.training import next_daily_streak
 
 
 def _reset_monitor_hit():
@@ -33,12 +34,9 @@ def start_session(body: SessionCreate, db: DBSession = Depends(get_session), use
         running.ended_at = datetime.now()
         running.actual_minutes = max(0, int((running.ended_at - running.started_at).total_seconds() // 60))
         running.status = "abandoned"
+        running.updated_at = datetime.now()  # 放弃旧会话也是变更，需进云同步
         db.add(running)
-    row = db.exec(select(Setting).where(Setting.key == "ritual_stage", Setting.user_id == user.id)).first()
-    try:
-        stage_int = int(json.loads(row.value)) if row else 1
-    except Exception:
-        stage_int = 1
+    stage_int = current_stage(db, user.id)
     session = FocusSession(**body.model_dump(), user_id=user.id)
     session.stage = STAGE_TO_SESSION.get(stage_int, "training")
     db.add(session)
@@ -81,9 +79,9 @@ def end_session(session_id: str, body: SessionUpdate, db: DBSession = Depends(ge
             todo.done = True
             todo.done_date = today
             if todo.is_daily:
-                yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-                todo.streak = todo.streak + 1 if todo.last_checkin == yesterday else 1
+                todo.streak = next_daily_streak(todo.last_checkin, todo.streak, today)
                 todo.last_checkin = today
+            todo.updated_at = datetime.now()  # 联动完成待办也是变更，需进云同步
             db.add(todo)
     db.add(session)
     db.commit()

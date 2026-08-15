@@ -10,6 +10,7 @@ import httpx
 from sqlmodel import Session as DBSession, select
 
 from app.models import Diary, Distraction, FocusSession, Setting, Todo
+from app.services.settings import upsert_setting
 
 CLOUD_BIND_KEY = "cloud_bind"      # { url, username, token }
 CLOUD_CURSOR_KEY = "cloud_cursor"  # 上次同步游标（UTC ISO 字符串）
@@ -78,12 +79,7 @@ def get_cursor(db: DBSession, user_id: str) -> str:
 
 
 def save_cursor(db: DBSession, user_id: str, cursor: str) -> None:
-    row = db.exec(select(Setting).where(Setting.key == CLOUD_CURSOR_KEY, Setting.user_id == user_id)).first()
-    if row:
-        row.value = cursor
-        row.updated_at = datetime.now()
-    else:
-        db.add(Setting(key=CLOUD_CURSOR_KEY, value=cursor, user_id=user_id))
+    upsert_setting(db, user_id, CLOUD_CURSOR_KEY, cursor)
 
 
 def _collect_changes(db: DBSession, user_id: str, cursor: str) -> list[dict]:

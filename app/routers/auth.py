@@ -4,7 +4,7 @@ from sqlmodel import Session as DBSession, select
 
 from app.db import AVATAR_DIR, get_session
 from app.deps import get_current_user
-from app.models import Distraction, FocusSession, Setting, User
+from app.models import Diary, Distraction, FocusSession, Setting, Todo, User
 from app.schemas import AuthLogin, AuthRegister, NicknameUpdate, PasswordChange, ResetPassword, SecuritySet
 from app.services import training as training_service
 from app.services.auth import create_token, hash_password, verify_password
@@ -23,7 +23,7 @@ def _user_payload(user: User) -> dict:
 
 def _inherit_orphan_data(db: DBSession, user_id: str) -> None:
     """首个用户注册时，把历史无主数据（user_id IS NULL）全部归属该账号。"""
-    for model in (FocusSession, Distraction, Setting):
+    for model in (FocusSession, Distraction, Setting, Todo, Diary):
         for row in db.exec(select(model).where(model.user_id.is_(None))).all():
             row.user_id = user_id
             db.add(row)

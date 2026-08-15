@@ -25,7 +25,7 @@ def client():
         for model in (models.Distraction, models.FocusSession, models.Setting, models.Todo, models.Diary, models.User):
             db.exec(delete(model))
         db.commit()
-    with TestClient(app) as c:
+    with TestClient(app, base_url="http://127.0.0.1") as c:
         r = c.post("/api/auth/register", json={"username": TEST_USERNAME, "nickname": "测试", "password": TEST_PASSWORD})
         assert r.status_code == 200, r.text
         c.headers.update({"Authorization": f"Bearer {r.json()['token']}"})

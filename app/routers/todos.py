@@ -1,5 +1,5 @@
 """待办 API：增删改 + 完成标记 + 打卡项目（每日重复）。"""
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session as DBSession, select
@@ -8,6 +8,7 @@ from app.db import get_session
 from app.deps import get_current_user
 from app.models import Todo, User
 from app.schemas import TodoCreate, TodoUpdate
+from app.services.training import next_daily_streak
 
 router = APIRouter(prefix="/api/todos", tags=["todos"])
 
@@ -88,8 +89,7 @@ def update_todo(
             todo.done = True
             todo.done_date = today
             if todo.is_daily:
-                yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y-%m-%d")
-                todo.streak = todo.streak + 1 if todo.last_checkin == yesterday else 1
+                todo.streak = next_daily_streak(todo.last_checkin, todo.streak, today)
                 todo.last_checkin = today
         elif not body.done:
             todo.done = False

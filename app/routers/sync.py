@@ -1,7 +1,5 @@
 """云同步 API：绑定账号 / 同步状态 / 立即同步 / 解绑。"""
 import json
-import os
-from datetime import datetime
 
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,12 +9,10 @@ from sqlmodel import Session as DBSession, select
 from app.db import get_session
 from app.deps import get_current_user
 from app.models import Setting, User
-from app.services.sync import CLOUD_BIND_KEY, CLOUD_CURSOR_KEY, get_bind, run_sync
+from app.services.settings import upsert_setting
+from app.services.sync import CLOUD_BIND_KEY, CLOUD_CURSOR_KEY, _SYNC_PROXY, get_bind, run_sync
 
 router = APIRouter(prefix="/api/sync", tags=["sync"])
-
-# 云端 workers.dev 国内直连不通，默认走本机 Clash 代理；可用环境变量 SYNC_PROXY 覆盖。
-_SYNC_PROXY = os.environ.get("SYNC_PROXY", "http://127.0.0.1:7897")
 
 
 class BindBody(BaseModel):
@@ -40,14 +36,7 @@ def _cloud(url: str, path: str, body: dict, token: str = "") -> tuple[int, objec
 
 
 def _save_bind(db: DBSession, user_id: str, bind: dict) -> None:
-    row = db.exec(select(Setting).where(Setting.key == CLOUD_BIND_KEY, Setting.user_id == user_id)).first()
-    value = json.dumps(bind, ensure_ascii=False)
-    if row:
-        row.value = value
-        row.updated_at = datetime.now()
-        db.add(row)
-    else:
-        db.add(Setting(key=CLOUD_BIND_KEY, value=value, user_id=user_id))
+    upsert_setting(db, user_id, CLOUD_BIND_KEY, json.dumps(bind, ensure_ascii=False))
     db.commit()
 
 

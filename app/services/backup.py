@@ -4,7 +4,7 @@ from datetime import datetime
 from sqlmodel import Session as DBSession, select
 
 from app.models import Diary, Distraction, FocusSession, Todo
-from app.routers.settings import get_settings, set_settings
+from app.services.settings import get_settings, set_settings
 
 SCHEMA_VERSION = 1
 

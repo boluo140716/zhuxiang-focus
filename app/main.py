@@ -20,6 +20,13 @@ init_db()
 
 MONITOR_ALIVE_TTL = 20  # 超过该秒数无轮询视为监控线程失活（单轮 tick 最坏约 12s，留余量）
 
+
+def _require_loopback(request: Request):
+    """仅允许本机来源：monitor 内部端点暴露黑名单/会话状态，防止局域网读取。"""
+    client = request.client.host if request.client else ""
+    if client not in ("127.0.0.1", "::1", "testclient"):  # testclient = 测试客户端标识，生产不可能出现
+        raise HTTPException(403, "仅允许本机调用")
+
 app = FastAPI(title="篆香")
 app.include_router(auth.router)
 app.include_router(sessions.router)
@@ -54,8 +61,9 @@ def system_shutdown(request: Request):
 
 
 @app.get("/api/monitor/status")
-def monitor_status():
+def monitor_status(request: Request):
     """监控自检：desktop 为 (WinSta0, Default) 且 foreground_seen=True 才说明前台窗口可见。"""
+    _require_loopback(request)
     try:
         from app.monitor import win_monitor
 
@@ -74,8 +82,9 @@ def monitor_status():
 
 
 @app.get("/api/monitor/hit")
-def monitor_hit():
+def monitor_hit(request: Request):
     """实时命中状态：前端轮询用于抖音实时提醒。"""
+    _require_loopback(request)
     try:
         from app.monitor import win_monitor
 
@@ -85,8 +94,9 @@ def monitor_hit():
 
 
 @app.get("/api/monitor/active_session")
-def monitor_active_session(db: DBSession = Depends(get_session)):
+def monitor_active_session(request: Request, db: DBSession = Depends(get_session)):
     """桌面监控内部：最新开始的 running 会话（不含任务名，仅 id/归属用户）。"""
+    _require_loopback(request)
     session = db.exec(
         select(FocusSession)
         .where(FocusSession.status == "running")
@@ -98,10 +108,13 @@ def monitor_active_session(db: DBSession = Depends(get_session)):
 
 
 @app.get("/api/monitor/settings")
-def monitor_settings(user_id: str | None = None, db: DBSession = Depends(get_session)):
+def monitor_settings(request: Request, user_id: str | None = None, db: DBSession = Depends(get_session)):
     """桌面监控内部：指定用户的分心黑名单与裸专注日设置（L3 预备毕业不再检测黑名单）。"""
-    s = settings.get_settings(db, user_id)
-    stage = settings.current_stage(db, user_id)
+    _require_loopback(request)
+    from app.services.settings import current_stage, get_settings
+
+    s = get_settings(db, user_id)
+    stage = current_stage(db, user_id)
     return {"blacklist": [] if stage >= 3 else s["blacklist"], "naked_day": s["naked_day"]}
 
 

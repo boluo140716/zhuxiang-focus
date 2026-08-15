@@ -66,12 +66,7 @@ def _is_search_result(title: str) -> bool:
 def _expand_keyword(keyword: str) -> list[str]:
     """将用户填写的关键词展开为多个匹配词。"""
     k = keyword.strip().lower()
-    # 先查扩展字典
-    for official, aliases in KEYWORD_EXPANSIONS.items():
-        if k == official.lower():
-            return aliases
-    # 不在字典中，返回原词（大小写不敏感）
-    return [keyword.strip()]
+    return KEYWORD_EXPANSIONS.get(k, [keyword.strip()])
 
 
 def match(window_title: str, process_name: str, blacklist) -> str | None:
