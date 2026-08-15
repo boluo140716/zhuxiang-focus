@@ -34,8 +34,9 @@
 6. ✅ PyInstaller spec：onedir + static 收集 + uvicorn/winsdk hidden imports + 图标
 7. ✅ 打包 + 本机冒烟：启动、随机端口、首页、健康检查、退出全通过
    - 关键坑：windowed（无控制台）EXE 下 uvicorn 默认日志写无效 stderr 会卡启动 → EXE 模式 `log_config=None`
-8. ⏳ 安装 Inno Setup（winget，待用户授权），写 installer 脚本
-9. ⏳ 构建安装包 + 完整验收
+8. ✅ 安装 Inno Setup 6.7.3（winget），写 installer.iss（中文界面 + 桌面快捷方式 + 卸载）
+9. ✅ 构建安装包 `packaging/installer/FocusProject-Setup-1.0.0.exe`（35MB）
+   - 全流程验收：静默安装 → 启动（随机端口/health/首页）→ 退出 → 静默卸载 → 数据目录保留
 
 ## 风险与已知坑
 
@@ -54,5 +55,5 @@
 
 ## 待确认
 
-- [ ] 允许用 winget 安装 Inno Setup 6（外部软件）
-- [ ] 退出机制采用页面"退出应用"按钮（不做托盘）
+- [x] 允许用 winget 安装 Inno Setup 6（外部软件）
+- [x] 退出机制采用页面"退出应用"按钮（不做托盘）

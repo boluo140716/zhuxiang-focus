@@ -15,3 +15,4 @@ cloudflare/dev.log
 cloudflare/dev.err.log
 packaging/build/
 packaging/dist/
+packaging/installer/
