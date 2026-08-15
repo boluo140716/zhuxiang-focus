@@ -1,5 +1,6 @@
 """SQLite 数据库初始化。"""
 import os
+import sys
 from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
@@ -12,6 +13,9 @@ def _db_path() -> Path:
     env = os.environ.get("FOCUS_DB_PATH")
     if env:
         return Path(env)
+    if getattr(sys, "frozen", False):  # PyInstaller EXE 模式：数据外迁到用户目录
+        base = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "FocusProject"
+        return base / "data" / "focus.db"
     return Path(__file__).resolve().parent.parent / "data" / "focus.db"
 
 

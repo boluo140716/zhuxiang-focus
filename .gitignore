@@ -13,3 +13,5 @@ codex_chat/
 cloudflare/.wrangler/
 cloudflare/dev.log
 cloudflare/dev.err.log
+packaging/build/
+packaging/dist/

@@ -1,5 +1,9 @@
 """FastAPI 入口。"""
+import os
+import sys
+import threading
 import time
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -32,6 +36,21 @@ app.include_router(sync.router)
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+@app.post("/api/system/shutdown")
+def system_shutdown(request: Request):
+    """退出应用（EXE 版"退出"按钮调用）。仅允许本机来源，防止局域网误关。"""
+    client = request.client.host if request.client else ""
+    if client not in ("127.0.0.1", "::1"):
+        raise HTTPException(403, "仅允许本机调用")
+
+    def _die():
+        time.sleep(0.3)  # 先让响应返回
+        os._exit(0)
+
+    threading.Thread(target=_die, daemon=True).start()
+    return {"ok": True}
 
 
 @app.get("/api/monitor/status")
@@ -109,4 +128,5 @@ def monitor_distraction(body: MonitorDistraction, request: Request, db: DBSessio
 app.mount("/avatars", StaticFiles(directory=AVATAR_DIR), name="avatars")
 
 
-app.mount("/", StaticFiles(directory="static", html=True), name="static")
+_STATIC_DIR = str(Path(sys._MEIPASS) / "static") if getattr(sys, "frozen", False) else "static"
+app.mount("/", StaticFiles(directory=_STATIC_DIR, html=True), name="static")

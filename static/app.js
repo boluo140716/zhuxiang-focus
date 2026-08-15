@@ -1896,6 +1896,13 @@ function unbindSync() {
   }, { seal: "解", title: "解除云同步", okText: "解绑" });
 }
 
+function exitApp() {
+  showConfirm("退出后需要重新启动应用。确定退出？", async () => {
+    try { await apiDirect("/api/system/shutdown", "POST"); } catch (e) { toast(e.message); }
+    setTimeout(() => { try { window.close(); } catch (_) {} }, 300);
+  }, { seal: "止", title: "退出应用", okText: "退出" });
+}
+
 /* ---------- 深度时段提醒 ---------- */
 function deepTimeReminder() {
   const s = state.settings;
@@ -2218,6 +2225,7 @@ function bindEvents() {
   $("btn-sync-bind").addEventListener("click", bindSync);
   $("btn-sync-now").addEventListener("click", () => syncNow(true));
   $("btn-sync-unbind").addEventListener("click", unbindSync);
+  $("btn-exit-app").addEventListener("click", exitApp);
   $("btn-refresh-stats").addEventListener("click", refreshStats);
 
   window.addEventListener("keydown", () => { state.lastActivity = Date.now(); }, { passive: true });
