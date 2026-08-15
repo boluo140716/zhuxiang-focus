@@ -40,3 +40,5 @@ static/       前端（页面 / 样式 / 脚本 / 图标）
 cloudflare/   云端同步服务（Worker + D1 schema）
 run.py        启动入口
 ```
+
+手机端正在开发...敬请期待
