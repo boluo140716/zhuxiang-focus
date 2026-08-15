@@ -10,10 +10,12 @@
  *   GET  /health                                     -> { ok: true }
  *
  * 认证：JWT（HS256），密钥来自环境变量 JWT_SECRET（`npx wrangler secret put JWT_SECRET`）。
- * 密码：PBKDF2-SHA256（20 万次迭代，随机盐），与本地 auth.py 同参数。
+ * 密码：PBKDF2-SHA256（1 万次迭代，随机盐）。
+ * 注意：云端迭代数低于本地 auth.py（20 万次），因 Workers 免费层 CPU 限制（10ms/请求）。
+ * 两端哈希独立存储、互不验证，云端降强度不影响本地安全模型。
  */
 const enc = new TextEncoder();
-const PBKDF2_ITERATIONS = 200_000;
+const PBKDF2_ITERATIONS = 10_000;
 const TOKEN_TTL = 7 * 24 * 3600;
 
 /* ---------- 工具 ---------- */
@@ -133,12 +135,14 @@ async function sync(env, body, userId) {
        payload = excluded.payload, updated_at = excluded.updated_at, deleted = excluded.deleted
      WHERE excluded.updated_at > sync_items.updated_at`
   );
+  const stmts = [];
   for (const c of changes) {
     if (!c || !c.id || !c.entity_type || !c.updated_at) continue;
-    await upsert
-      .bind(c.id, userId, c.entity_type, JSON.stringify(c.payload || {}), c.updated_at, c.deleted ? 1 : 0)
-      .run();
+    stmts.push(
+      upsert.bind(c.id, userId, c.entity_type, JSON.stringify(c.payload || {}), c.updated_at, c.deleted ? 1 : 0)
+    );
   }
+  if (stmts.length > 0) await env.DB.batch(stmts);  // 批量写入：首次全量几百条时避免串行 D1 超时
   const rows = await env.DB.prepare(
     `SELECT id, entity_type, payload, updated_at, deleted FROM sync_items
      WHERE user_id = ? AND updated_at > ? ORDER BY updated_at ASC`

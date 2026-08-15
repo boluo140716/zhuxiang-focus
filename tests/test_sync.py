@@ -19,7 +19,7 @@ class CloudMock:
         self.users = {}
         self.items = {}  # (type, id) -> {payload, updated_at, deleted}
 
-    def post(self, url, json=None, headers=None, timeout=None):
+    def post(self, url, json=None, headers=None, timeout=None, **kwargs):
         path = urlparse(url).path
         if path == "/login":
             if self.users.get(json.get("username")) == json.get("password"):

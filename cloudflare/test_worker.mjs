@@ -4,8 +4,8 @@ import worker, { b64url, b64urlToBytes, hashPassword, verifyPassword, createToke
 
 /* ---------- mock D1 ---------- */
 class MockStmt {
-  constructor(db, sql) { this.db = db; this.sql = sql; this.args = []; }
-  bind(...a) { this.args = a; return this; }
+  constructor(db, sql, args = []) { this.db = db; this.sql = sql; this.args = args; }
+  bind(...a) { return new MockStmt(this.db, this.sql, a); }
   run() { return this.db.run(this.sql, this.args); }
   all() { return this.db.all(this.sql, this.args); }
   first() { return this.db.first(this.sql, this.args); }
@@ -14,6 +14,7 @@ class MockStmt {
 class MockDB {
   constructor() { this.users = []; this.items = []; }
   prepare(sql) { return new MockStmt(this, sql); }
+  batch(stmts) { return stmts.map((s) => s.run()); }
   run(sql, args) {
     if (sql.includes("INSERT INTO users")) {
       this.users.push({ id: args[0], username: args[1], password_hash: args[2], created_at: args[3] });

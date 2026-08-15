@@ -1,5 +1,6 @@
 """云同步 API：绑定账号 / 同步状态 / 立即同步 / 解绑。"""
 import json
+import os
 from datetime import datetime
 
 import httpx
@@ -14,6 +15,9 @@ from app.services.sync import CLOUD_BIND_KEY, CLOUD_CURSOR_KEY, get_bind, run_sy
 
 router = APIRouter(prefix="/api/sync", tags=["sync"])
 
+# 云端 workers.dev 国内直连不通，默认走本机 Clash 代理；可用环境变量 SYNC_PROXY 覆盖。
+_SYNC_PROXY = os.environ.get("SYNC_PROXY", "http://127.0.0.1:7897")
+
 
 class BindBody(BaseModel):
     url: str
@@ -26,9 +30,9 @@ def _cloud(url: str, path: str, body: dict, token: str = "") -> tuple[int, objec
     if token:
         headers["Authorization"] = f"Bearer {token}"
     try:
-        r = httpx.post(url + path, json=body, headers=headers, timeout=20)
+        r = httpx.post(url + path, json=body, headers=headers, timeout=120, proxy=_SYNC_PROXY)
     except Exception:
-        return 0, "云端连接失败（需联网或科学上网）"
+        return 0, "云端连接失败（需联网或开启代理）"
     try:
         return r.status_code, r.json()
     except Exception:

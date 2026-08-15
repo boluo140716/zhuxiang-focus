@@ -3,6 +3,7 @@
 每轮同步：推送本地 `updated_at > 游标` 的改动 → 拉取云端更新 → 后写覆盖 → 推进游标。
 """
 import json
+import os
 from datetime import datetime, timezone
 
 import httpx
@@ -13,6 +14,9 @@ from app.models import Diary, Distraction, FocusSession, Setting, Todo
 CLOUD_BIND_KEY = "cloud_bind"      # { url, username, token }
 CLOUD_CURSOR_KEY = "cloud_cursor"  # 上次同步游标（UTC ISO 字符串）
 SYNC_EXCLUDED_KEYS = {CLOUD_BIND_KEY, CLOUD_CURSOR_KEY}
+
+# 云端 workers.dev 国内直连不通，默认走本机 Clash 代理；可用环境变量 SYNC_PROXY 覆盖。
+_SYNC_PROXY = os.environ.get("SYNC_PROXY", "http://127.0.0.1:7897")
 
 SESSION_FIELDS = [
     "task_name", "planned_minutes", "actual_minutes", "started_at", "ended_at",
@@ -186,10 +190,11 @@ def run_sync(db: DBSession, user_id: str) -> dict:
             f"{url}/sync",
             json={"last_sync_at": cursor, "changes": changes},
             headers={"Authorization": f"Bearer {bind.get('token', '')}"},
-            timeout=20,
+            timeout=120,
+            proxy=_SYNC_PROXY,
         )
     except Exception:
-        return {"synced": False, "reason": "云端连接失败（需联网或科学上网）"}
+        return {"synced": False, "reason": "云端连接失败（需联网或开启代理）"}
     if resp.status_code == 401:
         return {"synced": False, "reason": "云端登录已过期，请重新绑定"}
     if resp.status_code != 200:
