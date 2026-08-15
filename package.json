@@ -1,8 +1,8 @@
 {
-  "name": "yizhuxiang",
+  "name": "zhuxiang",
   "private": true,
   "version": "0.1.0",
-  "description": "一炷香 专注训练营 MVP",
+  "description": "篆香 专注训练应用（FastAPI + SQLite + 原生前端）",
   "devDependencies": {
     "jsdom": "^29.1.1"
   }

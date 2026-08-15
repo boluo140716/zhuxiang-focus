@@ -16,3 +16,5 @@ cloudflare/dev.err.log
 packaging/build/
 packaging/dist/
 packaging/installer/
+.tmp/
+run_*.log
