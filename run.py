@@ -1,8 +1,13 @@
-"""一键启动：Web 服务 + 桌面监控助手（EXE 版随机端口并自动开浏览器）。"""
+"""一键启动：Web 服务 + 桌面监控助手。
+
+开发模式：命令行 + 浏览器打开。
+EXE 模式：pywebview 桌面窗口（系统 WebView2），关窗即退出后端。
+"""
 import os
 import socket
 import sys
 import threading
+import time
 import webbrowser
 from datetime import datetime
 from pathlib import Path
@@ -30,19 +35,57 @@ def _find_free_port() -> int:
         return s.getsockname()[1]
 
 
+def _wait_port(port: int, timeout: float = 25.0) -> None:
+    """等待服务端口可连（窗口加载前确保后端就绪）。"""
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with socket.create_connection(("127.0.0.1", port), timeout=1):
+                return
+        except OSError:
+            time.sleep(0.2)
+    _log(f"等待端口 {port} 超时")
+
+
+def _run_desktop(port: int) -> None:
+    """EXE 模式：uvicorn 跑后台线程，主线程跑 pywebview 桌面窗口，关窗退出。"""
+    import webview
+
+    def serve():
+        # windowed 下 stderr 无效，uvicorn 默认日志会卡启动，故 log_config=None
+        uvicorn.run(app, host="127.0.0.1", port=port, log_config=None)
+
+    threading.Thread(target=serve, daemon=True).start()
+    _wait_port(port)
+    _log("后端就绪，打开桌面窗口")
+    window = webview.create_window(
+        "篆香 专注训练营",
+        f"http://127.0.0.1:{port}",
+        width=1280,
+        height=860,
+        min_size=(1024, 700),
+    )
+    webview.start()
+    _log("窗口已关闭，退出进程")
+    os._exit(0)  # 关窗杀后端
+
+
+def _run_dev(port: int) -> None:
+    """开发模式：命令行日志 + 自动开浏览器。"""
+    if os.environ.get("FOCUS_NO_BROWSER") != "1":
+        threading.Timer(1.2, lambda: webbrowser.open(f"http://127.0.0.1:{port}")).start()
+    start_monitor()
+    uvicorn.run(app, host="0.0.0.0", port=port, log_config=uvicorn.config.LOGGING_CONFIG)
+
+
 def main():
     _log("启动开始")
     port = _find_free_port()
-    host = "127.0.0.1" if getattr(sys, "frozen", False) else "0.0.0.0"
-    _log(f"端口 {port} host {host}")
-    if os.environ.get("FOCUS_NO_BROWSER") != "1":
-        threading.Timer(1.2, lambda: webbrowser.open(f"http://127.0.0.1:{port}")).start()
-    _log("准备启动 uvicorn")
-    start_monitor()
-    # EXE 无控制台窗口时 stderr 无效，uvicorn 默认日志会卡启动；仅 EXE 模式关掉其日志配置
-    _log_config = None if getattr(sys, "frozen", False) else uvicorn.config.LOGGING_CONFIG
-    uvicorn.run(app, host=host, port=port, log_config=_log_config)
-    _log("uvicorn 已退出")
+    _log(f"端口 {port} 模式 {'EXE' if getattr(sys, 'frozen', False) else 'dev'}")
+    if getattr(sys, "frozen", False):
+        _run_desktop(port)
+    else:
+        _run_dev(port)
 
 
 if __name__ == "__main__":

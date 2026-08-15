@@ -20,7 +20,7 @@
 | 安装器 | Inno Setup 6 | 免费、脚本化、卸载干净；需下载安装（winget） |
 | 数据目录 | `%LOCALAPPDATA%\FocusProject` | 安装目录受 Program Files 写保护，数据必须外迁 |
 | 端口 | 启动时绑定空闲端口（socket bind 0） | 避免 8000 被占 |
-| 退出机制 | 页面"退出应用"按钮 → 调 shutdown API 优雅退出 | 可靠、无额外依赖；托盘方案需 pystray 依赖，先不做 |
+| 桌面形态 | pywebview 原生窗口（系统 WebView2），关窗杀后端 | 不弹浏览器、真桌面应用；页面"退出应用"按钮保留兜底 |
 | 图标 | static/icons/icon-512.png → icon.ico（Pillow） | 复用现有印章图标 |
 | 依赖收集 | uvicorn / winotify(winsdk) 走 hidden-imports/collect | 这两个是 PyInstaller 打包的已知坑 |
 
@@ -29,7 +29,7 @@
 1. ✅ 安装 PyInstaller（6.22.0），Python 3.14 兼容
 2. ✅ 生成 icon.ico（Pillow 转换 icon-512.png）
 3. ✅ 改 `app/db.py`：EXE 模式数据目录 `%LOCALAPPDATA%\FocusProject`
-4. ✅ 改 `run.py`：随机端口 + 自动开浏览器 + `FOCUS_NO_BROWSER` 开关 + 启动日志
+4. ✅ 改 `run.py`：EXE 模式 pywebview 桌面窗口（关窗杀后端）+ 随机端口；开发模式保持浏览器打开
 5. ✅ `POST /api/system/shutdown`（仅本机）+ 设置页"退出应用"按钮
 6. ✅ PyInstaller spec：onedir + static 收集 + uvicorn/winsdk hidden imports + 图标
 7. ✅ 打包 + 本机冒烟：启动、随机端口、首页、健康检查、退出全通过
@@ -37,6 +37,7 @@
 8. ✅ 安装 Inno Setup 6.7.3（winget），写 installer.iss（中文界面 + 桌面快捷方式 + 卸载）
 9. ✅ 构建安装包 `packaging/installer/FocusProject-Setup-1.0.0.exe`（35MB）
    - 全流程验收：静默安装 → 启动（随机端口/health/首页）→ 退出 → 静默卸载 → 数据目录保留
+10. ✅ 桌面形态升级：pywebview 窗口（标题"篆香 专注训练营"），关窗杀后端实测生效；安装包重建并全流程复验
 
 ## 风险与已知坑
 

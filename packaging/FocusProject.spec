@@ -8,8 +8,8 @@ datas = [(ROOT + r"\static", "static")]
 binaries = []
 hiddenimports = []
 
-# uvicorn / winotify / winsdk：动态导入与数据文件收集
-for pkg in ("uvicorn", "winotify", "winsdk"):
+# uvicorn / winotify / winsdk / webview：动态导入与数据文件收集
+for pkg in ("uvicorn", "winotify", "winsdk", "webview"):
     d, b, h = collect_all(pkg)
     datas += d
     binaries += b
@@ -22,6 +22,8 @@ hiddenimports += [
     "uvicorn.protocols.http.auto",
     "uvicorn.protocols.websockets.auto",
     "uvicorn.lifespan.on",
+    "webview.platforms.winforms",
+    "clr",
 ]
 
 a = Analysis(
