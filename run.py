@@ -47,6 +47,23 @@ def _wait_port(port: int, timeout: float = 25.0) -> None:
     _log(f"等待端口 {port} 超时")
 
 
+def _ensure_single_instance() -> bool:
+    """Windows 命名互斥量保证单实例；已运行时唤醒既有窗口并返回 False。"""
+    import ctypes
+
+    kernel32 = ctypes.windll.kernel32
+    user32 = ctypes.windll.user32
+    kernel32.CreateMutexW(None, False, "FocusProject_SingletonMutex")
+    if kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
+        _log("检测到已有实例，唤醒既有窗口")
+        hwnd = user32.FindWindowW(None, "篆香")
+        if hwnd:
+            user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+            user32.SetForegroundWindow(hwnd)
+        return False
+    return True
+
+
 def _run_desktop(port: int) -> None:
     """EXE 模式：uvicorn 跑后台线程，pywebview 桌面窗口 + 系统托盘。"""
     import webview
@@ -102,6 +119,8 @@ def _run_dev(port: int) -> None:
 
 
 def main():
+    if not _ensure_single_instance():
+        return
     _log("启动开始")
     port = _find_free_port()
     _log(f"端口 {port} 模式 {'EXE' if getattr(sys, 'frozen', False) else 'dev'}")
