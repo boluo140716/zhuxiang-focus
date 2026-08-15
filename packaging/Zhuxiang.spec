@@ -44,7 +44,7 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="FocusProject",
+    name="Zhuxiang",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
@@ -59,5 +59,5 @@ coll = COLLECT(
     a.datas,
     strip=False,
     upx=False,
-    name="FocusProject",
+    name="Zhuxiang",
 )

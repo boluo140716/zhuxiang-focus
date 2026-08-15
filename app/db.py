@@ -1,5 +1,6 @@
 """SQLite 数据库初始化。"""
 import os
+import shutil
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -14,9 +15,20 @@ def _db_path() -> Path:
     if env:
         return Path(env)
     if getattr(sys, "frozen", False):  # PyInstaller EXE 模式：数据外迁到用户目录
-        base = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "FocusProject"
-        return base / "data" / "focus.db"
+        base = Path(os.environ.get("LOCALAPPDATA", str(Path.home())))
+        _migrate_legacy_data(base)
+        return base / "Zhuxiang" / "data" / "focus.db"
     return Path(__file__).resolve().parent.parent / "data" / "focus.db"
+
+
+def _migrate_legacy_data(base: Path) -> None:
+    """旧版本数据目录 FocusProject → Zhuxiang 一次性迁移（保住数据与登录态）。"""
+    old, new = base / "FocusProject", base / "Zhuxiang"
+    if old.exists() and not new.exists():
+        try:
+            shutil.move(str(old), str(new))
+        except Exception:
+            pass  # 迁移失败（如旧实例占用）静默，下轮启动重试
 
 
 DB_PATH = _db_path()

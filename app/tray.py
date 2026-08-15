@@ -36,7 +36,7 @@ def create_tray(on_open, on_exit):
         try:
             from datetime import datetime
             from pathlib import Path
-            base = Path(os.environ.get("LOCALAPPDATA", ".")) / "FocusProject"
+            base = Path(os.environ.get("LOCALAPPDATA", ".")) / "Zhuxiang"
             base.mkdir(parents=True, exist_ok=True)
             with open(base / "app.log", "a", encoding="utf-8") as f:
                 f.write(f"{datetime.now().isoformat()} 托盘图标加载失败: {icon_file} {e}\n")

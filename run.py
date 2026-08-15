@@ -21,7 +21,7 @@ from app.monitor import start_monitor
 def _log(msg: str) -> None:
     """启动日志（EXE 无控制台，排障用；写不进时静默）。"""
     try:
-        base = Path(os.environ.get("LOCALAPPDATA", ".")) / "FocusProject"
+        base = Path(os.environ.get("LOCALAPPDATA", ".")) / "Zhuxiang"
         base.mkdir(parents=True, exist_ok=True)
         with open(base / "app.log", "a", encoding="utf-8") as f:
             f.write(f"{datetime.now().isoformat()} {msg}\n")
@@ -62,7 +62,7 @@ def _ensure_single_instance() -> bool:
 
     kernel32 = ctypes.windll.kernel32
     user32 = ctypes.windll.user32
-    kernel32.CreateMutexW(None, False, "FocusProject_SingletonMutex")
+    kernel32.CreateMutexW(None, False, "Zhuxiang_SingletonMutex")
     if kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
         _log("检测到已有实例，唤醒既有窗口")
         hwnd = user32.FindWindowW(None, "篆香")
@@ -113,7 +113,7 @@ def _run_desktop(port: int) -> None:
     window.events.closing += on_closing
     # private_mode=False + storage_path：WebView2 用户数据（localStorage/token）持久化，
     # 否则每次启动用随机临时目录 → 登录态丢失
-    _storage = str(Path(os.environ.get("LOCALAPPDATA", ".")) / "FocusProject" / "webview2")
+    _storage = str(Path(os.environ.get("LOCALAPPDATA", ".")) / "Zhuxiang" / "webview2")
     _log(f"WebView2 数据目录: {_storage}")
     webview.start(private_mode=False, storage_path=_storage)
     _log("窗口已关闭，退出进程")

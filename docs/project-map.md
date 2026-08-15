@@ -38,7 +38,7 @@ node tests/frontend_smoke.cjs                    # 前端冒烟（~50s）
 node tests/e2e_smoke.cjs                         # 端到端（~45s，真实 Chrome）
 node cloudflare/test_worker.mjs                  # Worker 单测
 python scripts/bump_version.py                   # 版本号 +1（同步 5 处）
-python -m PyInstaller packaging/FocusProject.spec --noconfirm --distpath packaging/dist --workpath packaging/build  # 打包 EXE
+python -m PyInstaller packaging/Zhuxiang.spec --noconfirm --distpath packaging/dist --workpath packaging/build  # 打包 EXE
 'C:\Users\20486\AppData\Local\Programs\Inno Setup 6\ISCC.exe' packaging/installer.iss   # 构建安装包
 ```
 
@@ -53,7 +53,7 @@ python -m PyInstaller packaging/FocusProject.spec --noconfirm --distpath packagi
 - 云端 Worker 受免费层 CPU 限制（10ms/请求）：PBKDF2 迭代已降到 1 万次（本地 auth.py 仍 20 万，两端哈希独立存储、互不验证）
 - 云端同步必须用 D1 `batch` 批量写入：逐条写入几百条记录会拖到 70s+ 触发客户端超时（客户端超时已放宽至 120s）
 - windowed（无控制台）EXE 下 uvicorn 默认日志写无效 stderr 会卡死启动：`run.py` 在 EXE 模式传 `log_config=None`，勿删
-- EXE 数据目录在 `%LOCALAPPDATA%\FocusProject`（`sys.frozen` 检测）；卸载不删数据
+- EXE 数据目录在 `%LOCALAPPDATA%\Zhuxiang`（旧版 `FocusProject` 目录首次启动自动迁移）；卸载不删数据
 - EXE 桌面形态用 pywebview（系统 WebView2）+ pystray 托盘：不弹浏览器；关窗最小化到托盘，托盘"退出"才结束进程（`run.py` 的 `_run_desktop`）
 - 系统时区为 UTC：同步游标统一 UTC ISO（`app/services/sync.py` 的 `_utc_iso`）
 - 中文经 PowerShell 管道传 Python 易乱码：用 UTF-8 文件或 `python -c`，别用内联中文 stdin
@@ -71,4 +71,4 @@ python -m PyInstaller packaging/FocusProject.spec --noconfirm --distpath packagi
 ## 当前待办
 
 - 阶段 5：手机版（复用同步引擎，纯记录：香计时/打卡/日记）
-- ~~EXE 安装包~~ ✅ 已完成（2026-08-15）：`packaging/installer/FocusProject-Setup-1.0.0.exe`
+- ~~EXE 安装包~~ ✅ 已完成（2026-08-15）：`packaging/installer/Zhuxiang-Setup-1.0.0.exe`
