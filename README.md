@@ -14,7 +14,7 @@
 
 ## 安装使用
 
-**桌面版（推荐）**：下载 `Zhuxiang-Setup-1.0.0.exe` 安装，双击启动即用，数据保存在 `%LOCALAPPDATA%\Zhuxiang`。
+**桌面版（推荐）**：[下载 Zhuxiang-Setup-1.0.0.exe](https://github.com/boluo140716/zhuxiang-focus/releases/latest/download/Zhuxiang-Setup-1.0.0.exe)（约 37 MB），双击安装即用，数据保存在 `%LOCALAPPDATA%\Zhuxiang`。
 
 **源码运行**：
 
